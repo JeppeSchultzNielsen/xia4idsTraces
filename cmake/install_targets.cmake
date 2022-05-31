@@ -8,7 +8,7 @@ install(TARGETS xia4ids xia4ids_runner
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
 # Install headers, preserving directory hierarchy
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/inc/xia4ids/ # use https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets when CMake version >= 3.23 can be expected
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/inc/ # use https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets when CMake version >= 3.23 can be expected
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xia4ids
     COMPONENT include)
 # For use with print_install_digest() at bottom of file
