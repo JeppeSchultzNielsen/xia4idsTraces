@@ -1,10 +1,48 @@
 # xia4ids
- XIA DGF Pixie-16 .ldf data file converter into ROOT and GASPware format for IDS (The IDS Collaboration https://isolde-ids.web.cern.ch/ ) 
+
+XIA DGF Pixie-16 .ldf data file converter into ROOT and GASPware format for IDS (The IDS Collaboration https://isolde-ids.web.cern.ch/ )
 
 Initial version of the code: https://github.com/phandangkhai/pixie16ids.
 
 Parts of this code were modified from Pixie Acquisition and Analysis Software Suite (PAASS) https://github.com/pixie16/paass, which is licensed under the GNU GPL v. 3.0. In particular, some classes are modified and adapted from PAASS of branch 'dev' at https://github.com/pixie16/paass/tree/dev/Analysis/ScanLibraries.
 
+## Build steps for xia4ids library 
+
+**This section is to be merged into "Installation and running" when/if the modifications here are accepted into the main xia4ids repo.**
+
+Prerequisites:
+* CMake version >= 3.15
+* ROOT version >= 6.xx
+
+Remove `xia4ids` from your path, if you have already followed the "old school" installation instructions.
+
+Then, from the root of the xia4ids project run
+```shell
+mkdir build
+cd build
+cmake ../
+make -j
+sudo make install
+```
+
+The `xia4ids` executable will then be available system-wide without the need to modify your path.
+
+Furthermore, `xia4ids` can be utilised as a software library in other C++ projects. This is especially easy if the projects are set up with CMake:
+
+```cmake
+# ...
+
+find_package(xia4ids REQUIRED)
+
+# ...
+
+add_executable(my_executable main.cpp)
+target_link_libraries(my_executable xia4ids::xia4ids)
+
+# ...
+```
+
+See e.g. the *CMakeLists.txt* file in the [Pixie2Ausa project](https://gitlab.au.dk/ausa/erik/pixie2ausa).
 
 
 ## Authors and contributors
@@ -123,5 +161,3 @@ The timestamp difference entry will appear after the energy entry.
 of blocks you want to be read from the end of the file. 
 3. You will be asked if you want to output the results in a ROOT file (useful for real-time yield measurement).
 4. Use the `macros/xia4ids_rate.sh` script file in order to get automatically the last file in a folder.
-
-
