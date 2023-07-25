@@ -124,10 +124,16 @@ public:
     ///@return The pair of the mask and bit shift to use to decode the data.
     std::pair<unsigned int, unsigned int> GetTraceLengthMask() const;
 
-    ///Getter for the Mask and shift for the trace words.
+    ///Getter for the Mask and shift for the 1st part of trace words.
     ///@return The pair of the mask and bit shift to use to decode the data.
-    std::pair<unsigned int, unsigned int> GetTraceMask() const {
-        return std::make_pair(0x0000FFFF, 16);
+    std::pair<unsigned int, unsigned int> Get1stTraceMask() const {
+        return std::make_pair(0x0000FFFF, 0);
+    };
+
+    ///Getter for the Mask and shift for the 2nd part of trace words.
+    ///@return The pair of the mask and bit shift to use to decode the data.
+    std::pair<unsigned int, unsigned int> Get2ndTraceMask() const {
+        return std::make_pair(0xFFFF0000, 16);
     };
 
     ///Getter for the value of the FIRMWARE so that we can test that things

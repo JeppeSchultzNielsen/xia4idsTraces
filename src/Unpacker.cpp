@@ -129,6 +129,7 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
         data->SetEventTimeLow(buf[1]); //Word One
         DecodeWordTwo(buf[2], *data, mask_);
         unsigned int traceLength = DecodeWordThree(buf[3], *data, mask_);
+        //data ->SetTraceLength(traceLength);
 
         // Reset energy to 0 in case of pileup or out-of-range.
         if (data->IsSaturated() || data->IsPileup())
@@ -162,7 +163,12 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
             buf += headerLength;
         }
 
-        // Trace parsing is done here if necessary!!!
+        // Trace parsing is done here
+        for(int i = 0; i < traceLength/2; i++){
+            DecodeTraceWord(buf[i], *data, mask_);
+        }
+
+
         result.push_back(data);
         // result[i++] = data;
 
@@ -231,6 +237,11 @@ unsigned int Unpacker::DecodeWordThree(const unsigned int& word, XiaData& data,
     }
 
     return ((word & mask.GetTraceLengthMask().first) >> mask.GetTraceLengthMask().second);
+}
+
+void Unpacker::DecodeTraceWord(const unsigned int& word, XiaData& data, const XiaListModeDataMask& mask){
+    data.AddToTrace((word & mask.Get1stTraceMask().first) >> mask.Get1stTraceMask().second);
+    data.AddToTrace((word & mask.Get2ndTraceMask().first) >> mask.Get2ndTraceMask().second);
 }
 
 void Unpacker::InitializeMaskMap() {

@@ -92,8 +92,8 @@ void read_config(int argc, char **argv) {
   
   //Coincidence level (fold)
   if(!fscanf(input_file,"Fold  %d\n",    &fold)) { printf("ERROR: Cannot read <fold> from '%s'\n", argv[1]); exit(0);}
-  
-  
+
+  fscanf(input_file,"Traces  %d\n",    &savetraces);
   printf("Successfully read configuration parameters. \n");
 
 

@@ -188,13 +188,19 @@ int main(int argc, char **argv)
 									
 				// read_ldf() will read a fixed number of spills at once from the binary file
 				// if ratemode is enabled, read_ldf() will process only the last part of the file
+                old_iData = iData;
 				raw_list_size  += read_ldf(ldf, data, ldf_pos_index);
 				good_list_size += iData;
-				if (raw_list_size == 0)	continue;               					
-																	
+				if (raw_list_size == 0)	continue;
+
+                /*for(int v = old_iData; v < iData; v++){
+                    //clean traces from memory
+                    std::vector<unsigned int>().swap(DataArray[v].trace);
+                }*/
+
 				// Sorting the data chronologically.
 				MergeSort(DataArray, TempArray, 0, iData);
-									
+
 				// Extract first and last time stamps 
 				if (first_cycle) { 
 					if (DataArray[1].time > 0)
@@ -233,12 +239,18 @@ int main(int argc, char **argv)
 
 				// Writing to a ROOT Tree
 				else if (root == 1) {
-					event_builder_tree();
+                    event_builder_tree();
 					totEvt += iEvt;
 					printf(" %3d events written to %s ", totEvt, outname);
 					write_time(ldf_pos_index, ldf.GetFileLength());
+
 				}
 
+                for(int v = old_iData; v < iData; v++){
+                    //clean traces from memory
+                    std::vector<unsigned int>().swap(DataArray[v].trace);
+                    std::vector<unsigned int>().swap(TempArray[v].trace);
+                }
                                       
 				// We break this loop after the entire file is read and parsed.
 				if (data.GetRetval() == 2) { // last cycle.
@@ -262,8 +274,8 @@ int main(int argc, char **argv)
                     // std::cout << "First time stamp: " << first_ts << "\t Last time stamp: " << last_ts << std::endl;
                     std::cout << "Finished reading incomplete file" << std::endl; 
                     break;
-				} 
-	
+				}
+
 				fflush(stdout);
 				
 			} // End of cycling over a partition

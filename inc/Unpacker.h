@@ -20,7 +20,8 @@ public:
 	std::pair<unsigned int, unsigned int> DecodeWordZero(const unsigned int& word, XiaData& data,
 		const XiaListModeDataMask& mask);
 	void DecodeWordTwo(const unsigned int& word, XiaData& data, const XiaListModeDataMask& mask);
-	unsigned int DecodeWordThree(const unsigned int& word, XiaData& data,
+    void DecodeTraceWord(const unsigned int& word, XiaData& data, const XiaListModeDataMask& mask);
+    unsigned int DecodeWordThree(const unsigned int& word, XiaData& data,
 		const XiaListModeDataMask& mask);
 	/// Method calculates time stamp from event times and mask info (frequency).
 	/// returns <incomplete time stamp (without Cfd fractional time), time stamp>

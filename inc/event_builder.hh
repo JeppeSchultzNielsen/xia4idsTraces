@@ -68,11 +68,11 @@ void event_builder() {
 		if (DataArray[k+m].energy > energy_overflow) DataArray[k+m].energy = energy_overflow; 
       
         //if ref is inside an event we need to update the information about it
-		if (reftype !=0 && tmc[DataArray[k+m].modnum][DataArray[k+m].chnum] == reftype) 
+		if (reftype !=0 && tmc[DataArray[k+m].modnum][DataArray[k+m].chnum] == reftype)
 			tref = DataArray[k+m].time;
 		
 		m++;
-			  
+
 	}
       
 	

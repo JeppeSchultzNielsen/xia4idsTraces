@@ -36,6 +36,7 @@ typedef struct dataStruct {
   double energy;
   short int chnum;
   short int modnum;
+  std::vector<unsigned int> trace;
 } dataStruct;
 
 typedef struct Event {
@@ -66,7 +67,7 @@ typedef struct GaspRecHeader {
   char runname[1000];
   char ref_string[10], run_string[10], format_string[100], rate_root_string[1];
   unsigned long long int ref_unit, run_unit;
-  int i, j, k, l, m, n, e, z,
+  int i, j, k, l, m, n, e, z, old_iData,
       iData = 0, iEvt, totEvt,
       runstart, runnumber, runstop, runpart,
       timegate, 
@@ -100,7 +101,7 @@ typedef struct GaspRecHeader {
      stop[MAX_NUM_DET][MAX_NUM_DETTYPES],    // stop for the pair_tac   
        lmc[MAX_NUM_MOD][MAX_NUM_CHN];        // line [mod][chan] -> returns the index of the config line
   
-  int corr, list, gasp, root, stat, rate, rate_root;
+  int corr, list, gasp, root, stat, rate, rate_root, savetraces;
   int list_evSize, reference_link;
   int corr_hist[MAX_NUM_DET][RANGE];
   int firstMod[MAX_NUM_DET], secondMod[MAX_NUM_DET], firstCh[MAX_NUM_DET], secondCh[MAX_NUM_DET];
@@ -132,8 +133,10 @@ TH1F *hStats, *h[MAX_NUM_DET];
 double E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET];
 int   //E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
       T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
+      TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
       M_branch[MAX_NUM_DETTYPES],
       MULT_branch;
+unsigned int TRACE_branch[MAX_NUM_DETTYPES][MAX_NUM_DET][130]; //seems that in IS659 at least, traces always have length 130. Since it does not seem root allows multidimensional branches of variable size, this number has to be hard coded?
 ULong64_t  TIME_REF_branch;
 ULong64_t  TIME_RUN_branch;    
 char root_string[MAX_NUM_DET][100];
