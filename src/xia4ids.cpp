@@ -43,6 +43,7 @@ https://github.com/rlica/xia4ids
 #include "write_list.hh"
 #include "write_time.hh"
 #include "read_ldf.hh"
+#include "read_dig_daq_params.hh"
 
 
 int main(int argc, char **argv)
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
     read_config(argc, argv);
 
     read_cal(argc, argv);
+    read_dig_daq_params(argc, argv);
 
     //Allocating memory
     DataArray = (struct dataStruct *)calloc(memoryuse, sizeof(struct dataStruct));
@@ -73,7 +75,6 @@ int main(int argc, char **argv)
     // Reading run by run
     for (runnumber = runstart; runnumber <= runstop; runnumber++)
     {
-		
 		raw_list_size = 0, good_list_size = 0;
         totEvt = 0;
         tref = 0;
