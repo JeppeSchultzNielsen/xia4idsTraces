@@ -51,6 +51,7 @@ HEADERS = \
 			xia4ids.cpp \
 			Unpacker.cpp \
 			XiaData.cpp \
+			dig_daq_params.cpp \
 			XiaDataListModeMask.cpp
 
 

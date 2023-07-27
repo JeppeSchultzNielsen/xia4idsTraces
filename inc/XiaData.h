@@ -142,6 +142,8 @@ public:
     ///@return The trace that was sampled on the module
     std::vector<unsigned int> GetTrace() const { return trace_; }
 
+    double GetTraceLength() const { return traceLength_; }
+
     ///@brief Sets the baseline recorded on the module if the energy sums
     /// were recorded in the data stream
     ///@param[in] a : The value to set
@@ -224,9 +226,15 @@ public:
     ///@param[in] a : The value to set
     void SetTrace(const std::vector<unsigned int>& a) { trace_ = a; }
 
+    ///@brief Adds a value to the trace vector
+    ///@param[in] a : The value to set
+    void AddToTrace(const unsigned int& a) { trace_.push_back(a); }
+
     ///@brief Sets the flag for channels generated on-board
     ///@param[in] a : True if we this channel was generated on-board
     void SetVirtualChannel(const bool& a) { isVirtualChannel_ = a; }
+
+    void SetTraceLength(const unsigned int& a) { traceLength_ = a; }
 
     ///@brief Clear all variables and set them to some default values.
     void Clear();
@@ -253,6 +261,8 @@ private:
     unsigned int externalTimeHigh_; ///Upper 16 bits of external time stamp
     unsigned int externalTimeLow_; ///Lower 32 bits of external time stamp
     unsigned int slotNum_; ///Slot number
+
+    unsigned int traceLength_; ///number of words in the corresponding trace.
 
     std::vector<unsigned int> eSums_;///Energy sums recorded by the module
     std::vector<unsigned int> qdc_; ///QDCs recorded by the module

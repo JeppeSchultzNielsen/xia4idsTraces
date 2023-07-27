@@ -213,7 +213,7 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
             if (!bad_spill) {
                 if (debug_mode)
                     std::cout << "Spill is full and good!" << std::endl;
-                unpacker_.ReadSpill(decodedList_, data_, nBytes / 4, is_verbose, debug_mode);   // Decoding data information from a good spill
+                unpacker_.ReadSpill(decodedList_, data_, nBytes / 4, is_verbose, debug_mode, dig_daq_params);   // Decoding data information from a good spill
                 //IdleTask();
                 if (debug_mode)
                     std::cout << std::endl << std::endl;
@@ -239,7 +239,7 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
             std::cout << "Number of spills recorded (and parsed): " << num_spills_recvd << " spills" << std::endl;
         
         // Reading until we reach the spill reading limit set in xia4ids.hh	
-        if (num_spills_recvd == max_num_spill && max_num_spill != 0) {                          
+        if (num_spills_recvd == max_num_spill && max_num_spill != 0) {
             if (debug_mode)
                 std::cout << "Limit of number of events to record = " << max_num_spill << " has been reached!" << std::endl;
             break;
@@ -290,35 +290,33 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
         DataArray[iData].modnum = decodedEvent->GetModuleNumber();
         DataArray[iData].energy = calibrate(decodedEvent->GetModuleNumber(), decodedEvent->GetChannelNumber(), decodedEvent->GetEnergy());
         DataArray[iData].time	= decodedEvent->GetTime() + delay[decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()];
-        
+        if(savetraces){
+            DataArray[iData].trace	= decodedEvent->GetTrace();
+        }
         
         // printf("mod = %d \t chan = %d \t time = %lf \t %lf \n", decodedEvent->GetModuleNumber(), decodedEvent->GetChannelNumber(), decodedEvent->GetTime(), decodedEvent->GetCfdFractionalTime());
-        
         //Filling ROOT Histogram
 		if ( (root == 1 || stat == 1) && corr == 0 ) {
 			int line = lmc[DataArray[iData].modnum][DataArray[iData].chnum];
 			hStats->AddBinContent(line, 1);
 			h[line]->Fill(DataArray[iData].energy);
 		}
-		
 		//In correlation mode, we need to delay the stop (stop = secondCh,secondMod)
 		//The start is always the same reference and should not be used as stop
 		if (corr > 0)
 			for (j=0; j<corr; j++)
 				if (DataArray[iData].chnum == secondCh[j] && DataArray[iData].modnum == secondMod[j])
 					DataArray[iData].time += CORR_DELAY;
-					
 		iData++;
 		 
 				      
 
     }
-    
     //Cleaning up
     for (int i = 0; i < decodedList_.size(); i++)
+        //decodedList_[i]->Clear(); why is there a memory leak unless this is commented out?
 		delete decodedList_[i];
-    
-        
+
     ldf.GetFile().close();
                 
     return decodedList_.size();

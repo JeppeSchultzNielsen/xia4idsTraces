@@ -15,7 +15,7 @@ void XiaData::Clear() {
     energy_ = baseline_ = 0.0;
 
     chanNum_ = crateNum_ = slotNum_ = cfdTime_ = 0;
-    eventTimeHigh_ = eventTimeLow_ = externalTimeLow_ = externalTimeHigh_ = 0;
+    eventTimeHigh_ = eventTimeLow_ = externalTimeLow_ = externalTimeHigh_ = traceLength_ = 0;
 
     eSums_.clear();
     qdc_.clear();
