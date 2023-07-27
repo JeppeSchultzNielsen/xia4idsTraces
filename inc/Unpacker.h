@@ -1,3 +1,6 @@
+#ifndef UNPACKER_H
+#define UNPACKER_H
+
 #pragma once
 #include <map>
 #include <utility>
@@ -6,6 +9,7 @@
 #include <iostream>
 #include "XiaData.h"
 #include "XiaListModeDataMask.h"
+#include "dig_daq_param.hh"
 
 using namespace std;
 
@@ -15,8 +19,8 @@ public:
 	Unpacker() {
 		InitializeMaskMap(); }
 
-	bool ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data, unsigned int nWords, bool is_verbose, bool& debug_mode);
-	int DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, const unsigned int& vsn, bool& debug_mode);
+	bool ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data, unsigned int nWords, bool is_verbose, bool& debug_mode,DigDaqParam* dig_daq_params[][17]);
+	int DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, const unsigned int& vsn, bool& debug_mode, DigDaqParam* dig_daq_params[][17]);
 	std::pair<unsigned int, unsigned int> DecodeWordZero(const unsigned int& word, XiaData& data,
 		const XiaListModeDataMask& mask);
 	void DecodeWordTwo(const unsigned int& word, XiaData& data, const XiaListModeDataMask& mask);
@@ -31,3 +35,5 @@ private:
 	map<unsigned int, pair<string, unsigned int> > maskMap_;///< Maps firmware/frequency to module number.
 	void InitializeMaskMap();
 };
+
+#endif

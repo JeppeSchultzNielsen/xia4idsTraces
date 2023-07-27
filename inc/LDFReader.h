@@ -1,5 +1,8 @@
 //#ifndef __LDF_READER_H__
 //#define __LDF_READER_H__
+#ifndef LDFREADER_H // This needs to be unique in each header
+#define LDFREADER_H
+
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -111,4 +114,4 @@ public:
     std::streampos GetFileLength() { return file_length; }
 };
 
-//#endif
+#endif

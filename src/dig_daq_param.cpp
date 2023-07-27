@@ -11,7 +11,7 @@ DigDaqParamINDiE::DigDaqParamINDiE(int modNo, int chanNo, TString detType, vecto
     module_number = modNo;
     channel_number = chanNo;
     detType = detType;
-    if(size(betaParams) != 5 || size(gammaParams) != 4){
+    if(size(betaParams) != 4 || size(gammaParams) != 5){
         cout << "Wrong number of parameters for INDiE: module number " << modNo << " channel number " << chanNo << endl;
         return;
     }
@@ -23,6 +23,7 @@ DigDaqParamINDiE::DigDaqParamINDiE(int modNo, int chanNo, TString detType, vecto
             this->gammaParams[i] = gammaParams[i];
         }
     }
+    isReady = true;
 }
 
 double DigDaqParamINDiE::calculateBeta(double alpha) {
@@ -33,11 +34,11 @@ double DigDaqParamINDiE::calculateGamma(double alpha) {
     return gammaParams[0] + gammaParams[1]*alpha + gammaParams[2]*alpha*alpha + gammaParams[3]*log(alpha);
 }
 
-int DigDaqParamINDiE::PmtFunction(const gsl_vector *x, void *FitData, gsl_vector *f) {
-    size_t n = ((struct FitData *) FitData)->n;
-    double *y = ((struct FitData *) FitData)->y;
-    double beta = ((struct FitData *) FitData)->beta;
-    double gamma = ((struct FitData *) FitData)->gamma;
+int PmtFunction(const gsl_vector *x, void *FitData, gsl_vector *f) {
+    size_t n = ((struct DigDaqParamINDiE::FitData *) FitData)->n;
+    double *y = ((struct DigDaqParamINDiE::FitData *) FitData)->y;
+    double beta = ((struct DigDaqParamINDiE::FitData *) FitData)->beta;
+    double gamma = ((struct DigDaqParamINDiE::FitData *) FitData)->gamma;
 
     double phi = gsl_vector_get(x, 0);
     double alpha = gsl_vector_get(x, 1);
@@ -59,10 +60,10 @@ int DigDaqParamINDiE::PmtFunction(const gsl_vector *x, void *FitData, gsl_vector
     return (GSL_SUCCESS);
 }
 
-int DigDaqParamINDiE::CalcPmtJacobian(const gsl_vector *x, void *FitData, gsl_matrix *J){
-    size_t n = ((struct FitData *) FitData)->n;
-    double beta = ((struct FitData *) FitData)->beta;
-    double gamma = ((struct FitData *) FitData)->gamma;
+int CalcPmtJacobian(const gsl_vector *x, void *FitData, gsl_matrix *J){
+    size_t n = ((struct DigDaqParamINDiE::FitData *) FitData)->n;
+    double beta = ((struct DigDaqParamINDiE::FitData *) FitData)->beta;
+    double gamma = ((struct DigDaqParamINDiE::FitData *) FitData)->gamma;
 
     double phi = gsl_vector_get(x, 0);
     double alpha = gsl_vector_get(x, 1);
@@ -102,6 +103,9 @@ double DigDaqParamINDiE::calculatePhase(vector<unsigned int> &data, double alpha
     xInit[0] = maxPos;
     xInit[1] = alpha;
     xInit[2] = baseline;
+
+    f.f = &PmtFunction;
+    f.df = &CalcPmtJacobian;
 
     const gsl_multifit_fdfsolver_type *T = gsl_multifit_fdfsolver_lmsder;
     gsl_multifit_fdfsolver *s = gsl_multifit_fdfsolver_alloc(T, n, p);

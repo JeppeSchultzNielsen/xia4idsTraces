@@ -1,4 +1,5 @@
-
+#ifndef XIA4IDS_HH // This needs to be unique in each header
+#define XIA4IDS_HH
 #define MAX_NUM_DET      300
 #define MAX_NUM_DETTYPES  60
 #define MAX_NUM_CHN       17
@@ -11,6 +12,8 @@
 #define DEBUG		    false // Debug information from LDFReader.cpp
 #define VERBOSE			true // Display information from Unpacker.cpp
 #define RATE_EOF_MB		  10 // Size in MBytes to read from the end of file in ratemeter mode
+
+#include "dig_daq_param.hh"
 
 ////if digitizer unit time = 10ns 
 //#define US 100
@@ -110,6 +113,8 @@ typedef struct GaspRecHeader {
   //multiplier=1000;  // -> 1000*1ns = 1 microsecond  
   
   int stats[3][MAX_NUM_MOD][MAX_NUM_CHN]; // stats[0=out-of-range, 1=pileup, 2=good][modnum][chnum]
+
+  DigDaqParam* dig_daq_params[MAX_NUM_MOD][MAX_NUM_CHN];
   
   int have_cal;
   double calib[MAX_NUM_MOD][MAX_NUM_CHN][MAX_CAL];
@@ -144,3 +149,4 @@ char root_string[MAX_NUM_DET][100];
 char *comment_line;
 char comment_string[MAX_NUM_DET][100];
 
+#endif

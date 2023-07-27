@@ -213,7 +213,7 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
             if (!bad_spill) {
                 if (debug_mode)
                     std::cout << "Spill is full and good!" << std::endl;
-                unpacker_.ReadSpill(decodedList_, data_, nBytes / 4, is_verbose, debug_mode);   // Decoding data information from a good spill
+                unpacker_.ReadSpill(decodedList_, data_, nBytes / 4, is_verbose, debug_mode, dig_daq_params);   // Decoding data information from a good spill
                 //IdleTask();
                 if (debug_mode)
                     std::cout << std::endl << std::endl;

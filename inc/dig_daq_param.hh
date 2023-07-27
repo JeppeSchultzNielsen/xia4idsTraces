@@ -5,7 +5,6 @@
 #ifndef XIA4IDS_DIG_DAQ_PARAM_HH
 #define XIA4IDS_DIG_DAQ_PARAM_HH
 
-#endif //XIA4IDS_DIG_DAQ_PARAM_HH
 #include <cmath>
 
 #include <gsl/gsl_blas.h>
@@ -22,9 +21,10 @@ public:
     int module_number;
     int channel_number;
     TString detType;
+    bool isReady = false;
     DigDaqParam();
 
-    double calculate_Phase(vector<unsigned int> &data, unsigned int alpha);
+    double calculatePhase(vector<unsigned int> &data, double alpha, double maxpos, double baseline);
 };
 
 class DigDaqParamINDiE : public DigDaqParam {
@@ -40,8 +40,6 @@ public:
 
     double calculateBeta(double alpha);
     double calculateGamma(double alpha);
-    int PmtFunction(const gsl_vector *x, void *FitData, gsl_vector *f);
-    int CalcPmtJacobian(const gsl_vector *x, void *FitData, gsl_matrix *J);
 
     /// @brief Structure necessary for the GSL fitting routines
     struct FitData {
@@ -51,3 +49,5 @@ public:
         double gamma; //!< the gamma parameter for the fit
     };
 };
+
+#endif //XIA4IDS_DIG_DAQ_PARAM_HH

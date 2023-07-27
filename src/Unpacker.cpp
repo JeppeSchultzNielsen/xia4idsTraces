@@ -5,7 +5,7 @@
 
 using namespace DataProcessing;
 
-bool Unpacker::ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data, unsigned int nWords, bool is_verbose/*=true*/, bool& debug_mode) {
+bool Unpacker::ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data, unsigned int nWords, bool is_verbose/*=true*/, bool& debug_mode, DigDaqParam* dig_daq_params[][17]){
     const unsigned int maxVsn = 14; // No more than 14 pixie modules per crate
     unsigned int nWords_read = 0;
 
@@ -62,7 +62,7 @@ bool Unpacker::ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data,
 
             // Decode the buffer, pass the buffer only from the first non-delimiter.
             // In this context, buffer means the unit of data that stores the spill (not 8092 bytes unit).
-            retval = DecodeBuffer(decodedList, &data[nWords_read], vsn, debug_mode);
+            retval = DecodeBuffer(decodedList, &data[nWords_read], vsn, debug_mode, dig_daq_params);
             lastVsn = vsn;
             nWords_read += lenRec;
         }
@@ -86,7 +86,7 @@ bool Unpacker::ReadSpill(std::vector<XiaData*>& decodedList, unsigned int* data,
     return true;
 }
 
-int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, const unsigned int& vsn, bool& debug_mode) {
+int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, const unsigned int& vsn, bool& debug_mode, DigDaqParam* dig_daq_params[][17]) {
     XiaListModeDataMask mask_; ///< Object providing the masks necessary to decode the spill data.
 
     if (debug_mode)
@@ -166,6 +166,16 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
         // Trace parsing is done here
         for(int i = 0; i < traceLength/2; i++){
             DecodeTraceWord(buf[i], *data, mask_);
+        }
+
+        if(traceLength > 0){
+            if(dig_daq_params[modNum][data->GetChannelNumber()]->isReady){
+                cout << modNum << endl;
+                cout << dig_daq_params[modNum][data->GetChannelNumber()]->module_number << endl;
+                cout << data->GetChannelNumber() << endl;
+                cout << dig_daq_params[modNum][data->GetChannelNumber()]->channel_number << endl;
+                cout << dig_daq_params[modNum][data->GetChannelNumber()]->detType << endl;
+            }
         }
 
 
