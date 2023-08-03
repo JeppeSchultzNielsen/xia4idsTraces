@@ -45,7 +45,6 @@ https://github.com/rlica/xia4ids
 #include "read_ldf.hh"
 #include "read_dig_daq_params.hh"
 
-
 int main(int argc, char **argv)
 {
 

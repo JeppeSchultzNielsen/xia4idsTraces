@@ -48,6 +48,7 @@ void read_dig_daq_params(int argc, char **argv) {
         if(detType == "INDiE"){
             vector<double> betaParams = {};
             vector<double> gammaParams = {};
+            bool freeBetaGamma = false;
             if(splitted.size() >= 6){
                 if(splitted[4].find("-beta=") != std::string::npos){
                     string betaString = splitted[4].substr(6);
@@ -81,13 +82,64 @@ void read_dig_daq_params(int argc, char **argv) {
                         gammaParams.push_back(stod(gammaStringSplit[i]));
                     }
                 }
+                if(splitted[5].find("-freebetagamma=true") != std::string::npos){
+                    freeBetaGamma = true;
+                }
             }
             else{
                 printf("Need beta and gamma parameters for INDiE detectors. \n");
                 return;
             }
             delete dig_daq_params[module][channel];
-            dig_daq_params[module][channel] = new DigDaqParamINDiE(module, channel, detType, betaParams, gammaParams);
+            dig_daq_params[module][channel] = new DigDaqParamINDiE(module, channel, detType, betaParams, gammaParams, freeBetaGamma);
+        }
+        else if(detType == "Beta"){
+            vector<double> betaParams = {};
+            vector<double> gammaParams = {};
+            bool freeBetaGamma = false;
+            if(splitted.size() >= 6){
+                if(splitted[4].find("-beta=") != std::string::npos){
+                    string betaString = splitted[4].substr(6);
+                    vector<string> betaStringSplit = {};
+                    std::istringstream iss(betaString);
+
+                    std::string s;
+                    //split string by comma
+                    while (getline(iss, s, ',')) {
+                        betaStringSplit.push_back(s);
+                    }
+                    for(int i = 0; i < betaStringSplit.size(); i++){
+                        betaParams.push_back(stod(betaStringSplit[i]));
+                    }
+                }
+                else{
+                    printf("Need beta and gamma parameters for beta detectors. \n");
+                    return;
+                }
+                if(splitted[5].find("-gamma=") != std::string::npos){
+                    string gammaString = splitted[5].substr(7);
+                    vector<string> gammaStringSplit = {};
+                    std::istringstream iss(gammaString);
+
+                    std::string s;
+                    //split string by comma
+                    while (getline(iss, s, ',')) {
+                        gammaStringSplit.push_back(s);
+                    }
+                    for(int i = 0; i < gammaStringSplit.size(); i++){
+                        gammaParams.push_back(stod(gammaStringSplit[i]));
+                    }
+                }
+                if(splitted[5].find("-freebetagamma=true") != std::string::npos){
+                    freeBetaGamma = true;
+                }
+            }
+            else{
+                printf("Need beta and gamma parameters for INDiE detectors. \n");
+                return;
+            }
+            delete dig_daq_params[module][channel];
+            dig_daq_params[module][channel] = new DigDaqParamBeta(module, channel, detType, betaParams, gammaParams, freeBetaGamma);
         }
         else{
             cout << "Detector type " << detType << " not supported" << endl;

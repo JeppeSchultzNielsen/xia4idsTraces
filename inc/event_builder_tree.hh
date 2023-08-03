@@ -39,9 +39,9 @@ void event_builder_tree() {
 
     k=0; //the index of the data array 0<k<iData
     int type=0, index=0, mult=0, e=0;
-    uint64_t evt_start=0, lrt_ref=0, lrt_run=0;
+    double evt_start=0, lrt_ref=0, lrt_run=0;
 
-    int hrt[detnum+1];
+    double hrt[detnum+1];
     for(i=0; i<=detnum; i++)  hrt[i]=0;
 
 
@@ -134,7 +134,7 @@ void event_builder_tree() {
 
                 // HRT: high resolution time in digitizer units
                 hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
-
+                hrt[n] += DataArray[k+n].cfdtime;
                 // Reading the energy - performing addback if we have more detectors of the same type
                 //std::cout << "type: " << type << std::endl;
                 //std::cout << "index: " << index << std::endl;

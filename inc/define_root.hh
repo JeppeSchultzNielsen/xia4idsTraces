@@ -26,7 +26,7 @@ void define_root() {
   for (i=1; i<=dettypes; i++) {
 //    tree->Branch(Form("Energy_%s", root_string[i]), E_branch[i], Form("E_%s[%d]/I",root_string[i],maxnum[i]));
     tree->Branch(Form("Energy_%s", root_string[i]), E_branch[i], Form("E_%s[%d]/D",root_string[i],maxnum[i]));
-    tree->Branch(Form(  "Time_%s", root_string[i]), T_branch[i], Form("T_%s[%d]/I",root_string[i],maxnum[i]));
+    tree->Branch(Form(  "Time_%s", root_string[i]), T_branch[i], Form("T_%s[%d]/D",root_string[i],maxnum[i]));
     tree->Branch(Form(  "Mult_%s", root_string[i]),&M_branch[i], Form("M_%s/I"    ,root_string[i]            ));
       if(savetraces){
           tree->Branch(Form("TraceLen_%s", root_string[i]), TRACELEN_branch[i], Form("TL_%s[%d]/I",root_string[i],maxnum[i]));

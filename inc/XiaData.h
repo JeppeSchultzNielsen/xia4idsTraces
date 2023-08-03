@@ -144,6 +144,9 @@ public:
 
     double GetTraceLength() const { return traceLength_; }
 
+    ///@return The time with high resolution
+    double GetHRT() { return hrttime_; }
+
     ///@brief Sets the baseline recorded on the module if the energy sums
     /// were recorded in the data stream
     ///@param[in] a : The value to set
@@ -156,6 +159,10 @@ public:
     ///@brief Sets the CFD fractional time calculated on-board
     ///@param[in] a : The value to set
     void SetCfdFractionalTime(const unsigned int& a) { cfdTime_ = a; }
+
+    ///@brief Sets time calculated with high precision as double
+    ///@param[in] a : The value to set
+    void SetHRT(const double& a) { hrttime_ = a; }
 
     ///@brief Sets the CFD trigger source
     ///@param[in] a : The value to set
@@ -251,6 +258,7 @@ private:
     double time_; ///< The time of arrival using all parts of the time
     unsigned long long externalTimeStamp_; ///< The time of arrival using all parts of the time
     double timeSansCfd_; ///< The time of arrival of the signal sans CFD time.
+    double hrttime_; ///< The time with high resolution
 
     unsigned int pixieFrequency_; /// frequency of Pixie module.
     unsigned int cfdTime_; /// CFD trigger time
