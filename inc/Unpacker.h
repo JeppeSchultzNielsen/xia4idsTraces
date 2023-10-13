@@ -10,6 +10,7 @@
 #include "XiaData.h"
 #include "XiaListModeDataMask.h"
 #include "dig_daq_param.hh"
+#include "Trace.hh"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ public:
 	/// Method calculates time stamp from event times and mask info (frequency).
 	/// returns <incomplete time stamp (without Cfd fractional time), time stamp>
 	pair<double, double> CalculateTimeInSamples(const XiaListModeDataMask& mask,
-		const XiaData& data);
+		XiaData& data);
 private:
 	map<unsigned int, pair<string, unsigned int> > maskMap_;///< Maps firmware/frequency to module number.
 	void InitializeMaskMap();

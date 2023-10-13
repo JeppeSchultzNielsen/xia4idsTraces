@@ -25,7 +25,7 @@ void correlations() {
 				    DataArray[k+l].energy < 65536 && 
 				   (DataArray[k+l].time - DataArray[k].time) < RANGE  ) {
 				  
-					corr_hist[j][(DataArray[k+l].time - DataArray[k].time)]++;
+					corr_hist[j][(long)(DataArray[k+l].time - DataArray[k].time)]++;
 					m++;
 					
 				}

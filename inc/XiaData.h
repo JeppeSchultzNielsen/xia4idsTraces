@@ -144,6 +144,11 @@ public:
 
     double GetTraceLength() const { return traceLength_; }
 
+    double GetTraceIntegral() const { return traceIntegral_; }
+
+    ///@return The time with high resolution
+    double GetHRT() { return hrttime_; }
+
     ///@brief Sets the baseline recorded on the module if the energy sums
     /// were recorded in the data stream
     ///@param[in] a : The value to set
@@ -156,6 +161,10 @@ public:
     ///@brief Sets the CFD fractional time calculated on-board
     ///@param[in] a : The value to set
     void SetCfdFractionalTime(const unsigned int& a) { cfdTime_ = a; }
+
+    ///@brief Sets time calculated with high precision as double
+    ///@param[in] a : The value to set
+    void SetHRT(const double& a) { hrttime_ = a; }
 
     ///@brief Sets the CFD trigger source
     ///@param[in] a : The value to set
@@ -209,6 +218,8 @@ public:
     ///@param[in] a : True if we found a saturation on board
     void SetSaturation(const bool& a) { isSaturated_ = a; }
 
+    void SetTraceIntegral(const double& a) { traceIntegral_ = a; }
+
     ///@brief Sets the slot number
     ///@param[in] a : The value to set
     void SetSlotNumber(const unsigned int& a) { slotNum_ = a; }
@@ -251,6 +262,8 @@ private:
     double time_; ///< The time of arrival using all parts of the time
     unsigned long long externalTimeStamp_; ///< The time of arrival using all parts of the time
     double timeSansCfd_; ///< The time of arrival of the signal sans CFD time.
+    double hrttime_; ///< The time with high resolution
+    double traceIntegral_;
 
     unsigned int pixieFrequency_; /// frequency of Pixie module.
     unsigned int cfdTime_; /// CFD trigger time

@@ -167,14 +167,26 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
         for(int i = 0; i < traceLength/2; i++){
             DecodeTraceWord(buf[i], *data, mask_);
         }
-
+        long double phase = 0;
         if(traceLength > 0){
             if(dig_daq_params[modNum][data->GetChannelNumber()]->isReady){
-                cout << modNum << endl;
-                cout << dig_daq_params[modNum][data->GetChannelNumber()]->module_number << endl;
-                cout << data->GetChannelNumber() << endl;
-                cout << dig_daq_params[modNum][data->GetChannelNumber()]->channel_number << endl;
-                cout << dig_daq_params[modNum][data->GetChannelNumber()]->detType << endl;
+                Trace *trace = new Trace(data->GetTrace());
+                trace -> findTraceParams();
+                trace -> subtractBaseline();
+                if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "INDiE"){
+                    phase = static_cast<DigDaqParamINDiE*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
+                    //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
+                    data->SetHRT(phase);
+                    data->SetTraceIntegral(trace->qdc);
+
+                }
+                if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "Beta"){
+                    phase = static_cast<DigDaqParamBeta*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
+                    //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
+                    data->SetHRT(phase);
+                    data->SetTraceIntegral(trace->qdc);
+                }
+                delete trace;
             }
         }
 
@@ -270,11 +282,13 @@ void Unpacker::InitializeMaskMap() {
     maskMap_.insert(make_pair(12, make_pair("42950", 250)));
 }
 
-pair<double, double> Unpacker::CalculateTimeInSamples(const XiaListModeDataMask& mask,
-    const XiaData& data) {
+pair<double, double> Unpacker::CalculateTimeInSamples(const XiaListModeDataMask& mask, XiaData& data) {
     double filterTime = data.GetEventTimeLow() + data.GetEventTimeHigh() * pow(2., 32);
 
-    double cfdTime = 0, multiplier = 1;
+
+
+     long double cfdTime = 0;
+     int multiplier = 1;
     if (mask.GetFrequency() == 100)
         cfdTime = data.GetCfdFractionalTime() / mask.GetCfdSize();
 
@@ -294,6 +308,6 @@ pair<double, double> Unpacker::CalculateTimeInSamples(const XiaListModeDataMask&
     //(For 250MHZ) This way GetTime() always returns 4ns clock ticks, and GetTimeSansCfd() returns the normal 8ns ticks
     if (data.GetCfdFractionalTime() == 0 || data.GetCfdForcedTriggerBit())
         return make_pair(filterTime, filterTime * multiplier);
-
-    return make_pair(filterTime, filterTime * multiplier + cfdTime);
+    data.SetHRT(cfdTime);
+    return make_pair(filterTime, filterTime * multiplier);
 }

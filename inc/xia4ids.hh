@@ -34,7 +34,9 @@
 #define PBWIDTH 50
 
 typedef struct dataStruct { 
-  uint64_t  time;
+  double  time;
+  double cfdtime;
+  double traceIntegral;
   //short int energy;
   double energy;
   short int chnum;
@@ -88,7 +90,7 @@ typedef struct GaspRecHeader {
   uint64_t tref, next_tref;     //tref is global, it starts initialized as zero,
                                 //we change it only when encountering a new reference.
                                 //never reset it to zero !!! NO PROTONS LEFT BEHIND!!!
-  uint64_t first_ts = 0, last_ts = 0;
+  double first_ts = 0, last_ts = 0;
   int config_coding[1000][8]; //config_coding[lines][columns]
                                              
   
@@ -136,8 +138,10 @@ TTree *tree;
 TH1F *hStats, *h[MAX_NUM_DET];
 
 double E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET];
+double TI_branch[MAX_NUM_DETTYPES][MAX_NUM_DET];
+double T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET] ;
 int   //E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
-      T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
+      //T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
       TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
       M_branch[MAX_NUM_DETTYPES],
       MULT_branch;

@@ -4,7 +4,7 @@ file(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS "inc/*.
 list(REMOVE_ITEM SOURCES src/xia4ids.cpp)
 list(REMOVE_ITEM HEADERS inc/xia4ids.hh)
 add_library(xia4ids ${SOURCES} ${HEADERS})
-target_link_libraries(xia4ids PUBLIC ROOT::Tree ROOT::Hist GSL::gsl)
+target_link_libraries(xia4ids PUBLIC ROOT::Tree ROOT::Hist ROOT::Gpad GSL::gsl)
 target_include_directories(xia4ids PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/inc>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
