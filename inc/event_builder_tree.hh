@@ -47,6 +47,7 @@ void event_builder_tree() {
 
     int detcount[dettypes+1];
     double energy[dettypes+1][detnum+1];
+    double traceIntegral[dettypes+1][detnum+1];
     std::vector<unsigned int> trace[dettypes+1][detnum+1];
 
 
@@ -58,6 +59,7 @@ void event_builder_tree() {
         for(i=1; i<=dettypes; i++) {
             for (j=1; j<=maxnum[i]; j++){
                 energy[i][j]=0;
+                traceIntegral[i][j]=0;
                 if(savetraces){
                     trace[i][j].clear();
                 }
@@ -144,6 +146,7 @@ void event_builder_tree() {
                 //std::cout << "energy[0][0]: " << energy[0][0] << std::endl;
                 //std::cout << "DataArray[k+n].energy: " << DataArray[k+n].energy << std::endl;
                 energy[type][index] += DataArray[k+n].energy;
+                traceIntegral[type][index] += DataArray[k+n].traceIntegral;
                 if(savetraces) {
                     trace[type][index] = DataArray[k+n].trace;
                     std::vector<unsigned int>().swap(DataArray[k+n].trace);
@@ -199,6 +202,8 @@ void event_builder_tree() {
             //hrt[n] = 0;
 
             E_branch[type][index-1] = energy[type][index];
+            TI_branch[type][index-1] = traceIntegral[type][index];
+            //cout << traceIntegral[type][index] << endl;
             T_branch[type][index-1] = hrt[n];
             if(savetraces){
                 for(int i = 0; i < trace[type][index].size(); i++){
@@ -233,6 +238,7 @@ void event_builder_tree() {
         TIME_REF_branch = 0.0;
         TIME_RUN_branch = 0.0;
         memset(E_branch, 0, sizeof(E_branch));
+        memset(TI_branch, 0, sizeof(TI_branch));
         memset(T_branch, 0, sizeof(T_branch));
         memset(M_branch, 0, sizeof(M_branch));
         if(savetraces){

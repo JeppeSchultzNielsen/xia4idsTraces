@@ -177,14 +177,14 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
                     phase = static_cast<DigDaqParamINDiE*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
                     //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
                     data->SetHRT(phase);
-                    data->SetEnergy(trace->qdc);
+                    data->SetTraceIntegral(trace->qdc);
 
                 }
                 if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "Beta"){
                     phase = static_cast<DigDaqParamBeta*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
                     //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
                     data->SetHRT(phase);
-                    data->SetEnergy(trace->qdc);
+                    data->SetTraceIntegral(trace->qdc);
                 }
                 delete trace;
             }

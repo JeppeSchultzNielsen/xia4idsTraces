@@ -144,6 +144,8 @@ public:
 
     double GetTraceLength() const { return traceLength_; }
 
+    double GetTraceIntegral() const { return traceIntegral_; }
+
     ///@return The time with high resolution
     double GetHRT() { return hrttime_; }
 
@@ -216,6 +218,8 @@ public:
     ///@param[in] a : True if we found a saturation on board
     void SetSaturation(const bool& a) { isSaturated_ = a; }
 
+    void SetTraceIntegral(const double& a) { traceIntegral_ = a; }
+
     ///@brief Sets the slot number
     ///@param[in] a : The value to set
     void SetSlotNumber(const unsigned int& a) { slotNum_ = a; }
@@ -259,6 +263,7 @@ private:
     unsigned long long externalTimeStamp_; ///< The time of arrival using all parts of the time
     double timeSansCfd_; ///< The time of arrival of the signal sans CFD time.
     double hrttime_; ///< The time with high resolution
+    double traceIntegral_;
 
     unsigned int pixieFrequency_; /// frequency of Pixie module.
     unsigned int cfdTime_; /// CFD trigger time

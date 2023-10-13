@@ -291,6 +291,7 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
         DataArray[iData].energy = calibrate(decodedEvent->GetModuleNumber(), decodedEvent->GetChannelNumber(), decodedEvent->GetEnergy());
         DataArray[iData].time	= decodedEvent->GetTime() + delay[decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()];
         DataArray[iData].cfdtime= decodedEvent->GetHRT();
+        DataArray[iData].traceIntegral = decodedEvent->GetTraceIntegral();
         if(savetraces){
             DataArray[iData].trace	= decodedEvent->GetTrace();
         }
