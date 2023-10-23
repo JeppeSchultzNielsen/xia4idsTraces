@@ -17,7 +17,7 @@ DigDaqParamINDiE::DigDaqParamINDiE(int modNo, int chanNo, TString detType, vecto
         this->singleGamma = gammaParams[0];
         isSingleParam = true;
     }
-    else if(size(betaParams) != 4 || size(gammaParams) != 5){
+    else if(betaParams.size() != 4 || gammaParams.size() != 5){
         cout << "Wrong number of parameters for INDiE: module number " << modNo << " channel number " << chanNo << endl;
         return;
     }
@@ -136,7 +136,7 @@ int CalcPmtJacobian(const gsl_vector *x, void *FitData, gsl_matrix *J) {
     return (GSL_SUCCESS);
 }
 
-double DigDaqParamINDiE::calculatePhase(const Trace* trace){
+pair <double,double> DigDaqParamINDiE::calculatePhase(const Trace* trace){
     gsl_multifit_function_fdf f;
     int info;
     const size_t n = trace->data.size();
@@ -213,10 +213,14 @@ double DigDaqParamINDiE::calculatePhase(const Trace* trace){
         gammaFit = gamma;
     }
 
+    //cout << "From digdaq" <<  trace -> qdc << endl;
+
     //to test the fit visually: print histogram to root file -- extremely slow, do only to check
     /*TGraph* newGraph = new TGraph();
+    TH1D* traceHist = new TH1D(Form("Max %f Integral %f",trace->max,trace->qdc),Form("Max %f Integral %f",trace->max,trace->qdc),trace->data.size(),0,trace->data.size());
     for(int i = 0; i < trace->data.size(); i++){
         newGraph->SetPoint(i, i, trace->data[i]);
+        traceHist ->SetBinContent(i,trace->data[i]);
     }
     TGraph* newGraph2 = new TGraph();
     for(int i = 0; i < 1000; i++){
@@ -225,6 +229,7 @@ double DigDaqParamINDiE::calculatePhase(const Trace* trace){
         newGraph2->SetPoint(i, x, y);
     }
     TCanvas *myCanv = new TCanvas(Form("test%f",phase),Form("test%f",phase),1000,1000);
+    myCanv ->SetName(Form("Max %f Integral %f",trace->max,trace->qdc));
     newGraph2 ->SetLineColor(kBlack);
     //draw graph as line
     newGraph ->SetLineStyle(2);
@@ -237,6 +242,7 @@ double DigDaqParamINDiE::calculatePhase(const Trace* trace){
     line->Draw();
     TFile* file = TFile::Open("test.root", "update");
     myCanv -> Write();
+    traceHist -> Write();
     file->Close();*/
 
     gsl_multifit_fdfsolver_free(s);
@@ -246,7 +252,7 @@ double DigDaqParamINDiE::calculatePhase(const Trace* trace){
     delete[] weights;
 
 
-    return phase;
+    return make_pair(phase,alphaFit);
 }
 
 DigDaqParamBeta::DigDaqParamBeta(int modNo, int chanNo, TString detType, vector<double> &betaParams, vector<double> &gammaParams, bool freeBetaGamma) {
@@ -259,7 +265,7 @@ DigDaqParamBeta::DigDaqParamBeta(int modNo, int chanNo, TString detType, vector<
         this->singleGamma = gammaParams[0];
         isSingleParam = true;
     }
-    else if(size(betaParams) != 5 || size(gammaParams) != 5){
+    else if(betaParams.size() != 5 || gammaParams.size() != 5){
         cout << "Wrong number of parameters for Beta: module number " << modNo << " channel number " << chanNo  << endl;
         cout << "There are " << betaParams.size() << " beta params, there should be 5, and " << gammaParams.size() << "there should be 5." << endl;
         return;
@@ -296,7 +302,7 @@ double DigDaqParamBeta::fitFun(double x, double phi, double alpha, double beta, 
     return Yi;
 }
 
-double DigDaqParamBeta::calculatePhase(const Trace* trace){
+pair <double,double> DigDaqParamBeta::calculatePhase(const Trace* trace){
     gsl_multifit_function_fdf f;
     int info;
     const size_t n = trace -> data.size();
@@ -385,6 +391,7 @@ double DigDaqParamBeta::calculatePhase(const Trace* trace){
         newGraph2->SetPoint(i, x, y);
     }
     TCanvas *myCanv = new TCanvas(Form("test%f",phase),Form("test%f",phase),1000,1000);
+    myCanv ->SetName(Form("Max %f Integral %f",trace->max,trace->qdc));
     newGraph2 ->SetLineColor(kBlack);
     //draw graph as line
     newGraph ->SetLineStyle(2);
@@ -406,5 +413,5 @@ double DigDaqParamBeta::calculatePhase(const Trace* trace){
     delete[] weights;
 
 
-    return phase;
+    return make_pair(phase,alphaFit);
 }

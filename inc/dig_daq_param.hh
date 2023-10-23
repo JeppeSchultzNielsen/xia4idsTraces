@@ -11,6 +11,7 @@
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_vector.h>
+#include "polyCfd.hh"
 
 #include <TString.h>
 #include "iostream"
@@ -19,6 +20,7 @@
 #include "TLine.h"
 #include "TCanvas.h"
 #include "Trace.hh"
+#include "TH1D.h"
 
 using namespace std;
 class DigDaqParam {
@@ -31,7 +33,7 @@ public:
     bool freeBetaGamma = false;
     DigDaqParam();
 
-    double calculatePhase(Trace &trace);
+    pair <double,double> calculatePhase(Trace &trace);
 };
 
 class DigDaqParamINDiE : public DigDaqParam {
@@ -42,7 +44,7 @@ public:
     double singleGamma;
     DigDaqParamINDiE(int modNo, int chanNo, TString detType, vector<double> &betaParams, vector<double> &gammaParams, bool freeBetaGamma);
 
-    double calculatePhase(const Trace* trace);
+    pair <double,double> calculatePhase(const Trace* trace);
 
     double calculateBeta(double alpha);
     double calculateGamma(double alpha);
@@ -56,6 +58,8 @@ public:
         double gamma; //!< the gamma parameter for the fit
         bool freeBetaGamma;
     };
+
+
 };
 
 class DigDaqParamBeta : public DigDaqParam {
@@ -66,7 +70,7 @@ public:
     double singleGamma;
     DigDaqParamBeta(int modNo, int chanNo, TString detType, vector<double> &betaParams, vector<double> &gammaParams, bool freeBetaGamma);
 
-    double calculatePhase(const Trace* trace);
+    pair <double,double> calculatePhase(const Trace* trace);
 
     double calculateBeta(double alpha);
     double calculateGamma(double alpha);

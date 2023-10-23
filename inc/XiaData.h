@@ -146,6 +146,8 @@ public:
 
     double GetTraceIntegral() const { return traceIntegral_; }
 
+    double GetTraceMax() const { return traceMax_; }
+
     ///@return The time with high resolution
     double GetHRT() { return hrttime_; }
 
@@ -220,12 +222,15 @@ public:
 
     void SetTraceIntegral(const double& a) { traceIntegral_ = a; }
 
+    void SetTraceMax(const double& a) { traceMax_ = a; }
+
     ///@brief Sets the slot number
     ///@param[in] a : The value to set
     void SetSlotNumber(const unsigned int& a) { slotNum_ = a; }
 
     ///@brief Sets the calculated arrival time of the signal
-    ///@param[in] a : The value to set
+    ///@p
+    /// aram[in] a : The value to set
     void SetTime(const double& a) { time_ = a; }
 
     ///@brief Sets the calculated arrival time of the signal sans the CFD
@@ -247,6 +252,7 @@ public:
 
     void SetTraceLength(const unsigned int& a) { traceLength_ = a; }
 
+
     ///@brief Clear all variables and set them to some default values.
     void Clear();
 
@@ -264,6 +270,7 @@ private:
     double timeSansCfd_; ///< The time of arrival of the signal sans CFD time.
     double hrttime_; ///< The time with high resolution
     double traceIntegral_;
+    double traceMax_;
 
     unsigned int pixieFrequency_; /// frequency of Pixie module.
     unsigned int cfdTime_; /// CFD trigger time

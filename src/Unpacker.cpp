@@ -164,27 +164,29 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
         }
 
         // Trace parsing is done here
+
         for(int i = 0; i < traceLength/2; i++){
             DecodeTraceWord(buf[i], *data, mask_);
         }
-        long double phase = 0;
+        double phase = 0;
         if(traceLength > 0){
             if(dig_daq_params[modNum][data->GetChannelNumber()]->isReady){
                 Trace *trace = new Trace(data->GetTrace());
                 trace -> findTraceParams();
                 trace -> subtractBaseline();
                 if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "INDiE"){
-                    phase = static_cast<DigDaqParamINDiE*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
                     //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
+                    auto phaseAlpha = static_cast<DigDaqParamINDiE*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
+                    phase = phaseAlpha.first;
                     data->SetHRT(phase);
                     data->SetTraceIntegral(trace->qdc);
-
                 }
                 if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "Beta"){
-                    phase = static_cast<DigDaqParamBeta*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
+                    auto phaseAlpha = static_cast<DigDaqParamBeta*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
+                    phase = phaseAlpha.first;
                     //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
                     data->SetHRT(phase);
-                    data->SetTraceIntegral(trace->qdc);
+                    data->SetTraceIntegral(phaseAlpha.second);
                 }
                 delete trace;
             }

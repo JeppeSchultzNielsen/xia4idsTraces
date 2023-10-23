@@ -273,14 +273,14 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
 
 		// Remove pileup and out-of-range events if the flags are set
 		// stats[0=out-of-range, 1=pileup, 2=good][modnum][chnum]
-		if (decodedEvent->IsSaturated()) {
+		/*if (decodedEvent->IsSaturated()) {
 			stats[0][decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()]++;
 			if (reject_out) continue;
 		}
 		if (decodedEvent->IsPileup()) {
 			stats[1][decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()]++;
 			if (reject_pileup) continue;
-		}
+		}*/
 		
 		// If we reach this stage, it means we have a good event, we store it
 		stats[2][decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()]++;
@@ -292,6 +292,7 @@ int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
         DataArray[iData].time	= decodedEvent->GetTime() + delay[decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()];
         DataArray[iData].cfdtime= decodedEvent->GetHRT();
         DataArray[iData].traceIntegral = decodedEvent->GetTraceIntegral();
+        //cout << "DataArray " << decodedEvent->GetTraceIntegral() << endl;
         if(savetraces){
             DataArray[iData].trace	= decodedEvent->GetTrace();
         }

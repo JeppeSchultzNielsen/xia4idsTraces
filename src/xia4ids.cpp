@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 
 
 			// Start of a reading cycle:
-			while (data.GetRetval() != 2 && ldf_pos_index <= ldf.GetFileLength()) {
+			while (data.GetRetval() != 2 && ldf_pos_index <= ldf.GetFileLength()) {// ldf_pos_index <= ldf.GetFileLength()) {
 
 				// iData will be the last data index.
 				iData=0, iEvt=0;
