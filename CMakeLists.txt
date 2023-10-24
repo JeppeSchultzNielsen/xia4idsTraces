@@ -16,7 +16,14 @@ FetchContent_MakeAvailable(cmake_common)
 include(cmake/dependencies.cmake)
 
 # Define project targets, specify their dependencies, prepare their linkage, etc.
-include(cmake/target_definitions.cmake)
+#include(cmake/target_definitions.cmake)
 
 # Define and prepare installation targets
-include(cmake/install_targets.cmake)
+#include(cmake/install_targets.cmake)
+
+include_directories(${CMAKE_SOURCE_DIR}/inc)
+file(GLOB SOURCES "src/*.cpp" "src/*.c" "src/xia4idsMethods/*.cpp")
+file(GLOB HEADERS "inc/*.h" "inc/*.hh")
+
+add_executable(main ${SOURCES} ${HEADERS})
+target_link_libraries(main PUBLIC ROOT::Tree ROOT::Hist ROOT::Gpad GSL::gsl)

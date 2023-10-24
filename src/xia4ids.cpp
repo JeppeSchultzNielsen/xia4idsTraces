@@ -9,46 +9,10 @@ https://github.com/rlica/xia4ids
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
-#include <iomanip>
-#include <random>
-
-#include "TFile.h"
-#include "TTree.h"
-#include "TBrowser.h"
-#include "TH2.h"
-#include "TRandom.h"
-#include "TCanvas.h"
-#include "TMath.h"
-#include "TROOT.h"
-
 #include "xia4ids.hh"
-#include "read_config.hh"
-#include "calibrate.hh"
-#include "read_cal.hh"
-#include "merge_sort.hh"
-#include "define_root.hh"
-#include "event_builder.hh"
-#include "event_builder_list.hh"
-#include "event_builder_tree.hh"
-#include "correlations.hh"
-#include "write_correlations.hh"
-#include "write_gasp.hh"
-#include "write_stats.hh"
-#include "write_list.hh"
-#include "write_time.hh"
-#include "read_ldf.hh"
-#include "read_dig_daq_params.hh"
 
-int main(int argc, char **argv)
+int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 {
-
-    srand(time(0));
 
     printf("\n\t\t----------------------------------");
     printf("\n\t\t    XIA DGF Pixie-16 Converter");
@@ -264,7 +228,9 @@ int main(int argc, char **argv)
 					run_missing_chunks += data.GetNumMissing();
                                                      
                     break;
-				} 
+				}
+
+                cout << ldf_pos_index << endl;
                                       
 				// We also break this loop when reaching the initially read file length. 
 				// This allows for reading out incomplete files or files that are currently being written.
