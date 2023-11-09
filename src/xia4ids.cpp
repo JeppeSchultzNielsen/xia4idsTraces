@@ -13,7 +13,7 @@ https://github.com/rlica/xia4ids
 
 int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 {
-
+    this -> lastRead = lastRead;
     printf("\n\t\t----------------------------------");
     printf("\n\t\t    XIA DGF Pixie-16 Converter");
     printf("\n\t\t           v04.2021  ");
@@ -21,10 +21,14 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
     printf("\n\t\t----------------------------------");
     printf("\n\n");
 
+    cout << "starting read params" << endl;
+
     read_config(argc, argv);
 
     read_cal(argc, argv);
     read_dig_daq_params(argc, argv);
+
+    cout << "ending read params" << endl;
 
     //Allocating memory
     DataArray = (struct dataStruct *)calloc(memoryuse, sizeof(struct dataStruct));
@@ -35,241 +39,484 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 		GHeader = (struct GaspRecHeader *)calloc(1, sizeof(struct GaspRecHeader));
     }
 
-    // Reading run by run
-    for (runnumber = runstart; runnumber <= runstop; runnumber++)
-    {
-		raw_list_size = 0, good_list_size = 0;
-        totEvt = 0;
-        tref = 0;
-        run_good_chunks = 0;
-        run_missing_chunks = 0;
-        
-        bool first_cycle = true; // to keep track of total run time
+    raw_list_size = 0, good_list_size = 0;
+    totEvt = 0;
+    tref = 0;
+    run_good_chunks = 0;
+    run_missing_chunks = 0;
 
-        // Open output file
-        if (corr == 0) {
+    bool first_cycle = true; // to keep track of total run time
 
-            //GASPware format
-            if (gasp == 1)
+    // Open output file
+    if (corr == 0) {
+
+        //GASPware format
+        if (gasp == 1)
+        {
+            sprintf(outname, "Run%03d", runnumber);
+            fp_out = fopen(outname, "wt");
+            if (!fp_out)
             {
-                sprintf(outname, "Run%03d", runnumber);
-                fp_out = fopen(outname, "wt");
-                if (!fp_out)
-                {
-                    fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
-                    exit(0);
-                }
+                fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
+                exit(0);
             }
+        }
 
-            //Event List format
-            else if (list == 1)
+        //Event List format
+        else if (list == 1)
+        {
+            sprintf(outname, "Run%03d.list", runnumber);
+            fp_out = fopen(outname, "wt");
+            if (!fp_out)
             {
-                sprintf(outname, "Run%03d.list", runnumber);
-                fp_out = fopen(outname, "wt");
-                if (!fp_out)
-                {
-                    fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
-                    exit(0);
-                }
+                fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
+                exit(0);
             }
+        }
 
-            //ROOT format
-            else if (root == 1 || stat == 1) {
-                sprintf(outname, "Run%03d.root", runnumber);
-                rootfile = TFile::Open(outname, "recreate");
-                if (!rootfile) {
-                    fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
-                    exit(0);
-                }
-                define_root();
+        //ROOT format
+        else if (root == 1 || stat == 1) {
+            sprintf(outname, "output/Run%03d_%d.root", runnumber,lastRead);
+            rootfile = TFile::Open(outname, "recreate");
+            if (!rootfile) {
+                fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
+                exit(0);
             }
-        }    
-        
-
-			
-		// Cycling over run partitions (a large run will be split into several files of 2.0 Gb each -> one run partition = one file)
-		for (runpart = 0; runpart < 1000; runpart++) { 
-           
-			start_clock = (double)clock();
-               
-			//Ratemeter mode, analysing only the last RATE_EOF_MB megabytes from a file
-			if (rate == 1) {
-				if (argc < 3) { //Rate mode takes the input file as the second argument
-					printf("Config file and input file required as arguments: ...$xia4ids config_file_name input file [calibration] \n");
-					exit(0);
-				}
-				sprintf(filename, "%s", argv[2]);
-				fp_in = fopen(argv[2], "rb");
-				if (!fp_in) {
-					printf("ERROR: Unable to open %s \n", filename);
-					exit(0);
-				}
-				if (runpart > 0) break;
-			}				
-               
-			// Normal mode analysing the full file
-			if (rate == 0) {
-				if (runpart == 0)
-					sprintf(filename, "%s%03d.ldf", runname, runnumber);
-				else
-					sprintf(filename, "%s%03d-%d.ldf", runname, runnumber, runpart);
-				fp_in = fopen(filename, "rb");
-				if (!fp_in) {
-					printf("File parsing completed: %s does not exist\n", filename);
-					break;
-				}
-			}
-			
-			
-			//Initializing the binary file object
-			LDF_file ldf(filename);
-			DATA_buffer data;
-			int ldf_pos_index = 0;
-			float progress = 0.0;
-
-			// Set file length
-			ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
-			ldf.GetFile().seekg(0, ldf.GetFile().end);
-			ldf.SetLength(ldf.GetFile().tellg());
-			ldf.GetFile().seekg(0, ldf.GetFile().beg);
-			ldf.GetFile().close();
-			printf("Filename:  %s \nFile size: %.2f MB \n", filename, float(ldf.GetFileLength())/1048576);
+            define_root();
+        }
+    }
 
 
-			// Start of a reading cycle:
-			while (data.GetRetval() != 2 && ldf_pos_index <= ldf.GetFileLength()) {// ldf_pos_index <= ldf.GetFileLength()) {
 
-				// iData will be the last data index.
-				iData=0, iEvt=0;
-                   
-				// Initializing the data array to zero
-				memset(DataArray,0,memoryuse);  
-				memset(TempArray,0,memoryuse); //Used only when sorting
-				
-				// Displaying the progress bar
-				progress = float(ldf_pos_index) / float(ldf.GetFileLength());
-				printProgress(progress);
-									
-				// read_ldf() will read a fixed number of spills at once from the binary file
-				// if ratemode is enabled, read_ldf() will process only the last part of the file
-                old_iData = iData;
-				raw_list_size  += read_ldf(ldf, data, ldf_pos_index);
-				good_list_size += iData;
-				if (raw_list_size == 0)	continue;
+    // Cycling over run partitions (a large run will be split into several files of 2.0 Gb each -> one run partition = one file)
+    cout << "start_clock" << endl;
+    start_clock = (double)clock();
 
-                /*for(int v = old_iData; v < iData; v++){
-                    //clean traces from memory
-                    std::vector<unsigned int>().swap(DataArray[v].trace);
-                }*/
+    // Normal mode analysing the full file
+    if (rate == 0) {
+        if (runpart == 0)
+            sprintf(filename, "%s%03d.ldf", runname, runnumber);
+        else
+            sprintf(filename, "%s%03d-%d.ldf", runname, runnumber, runpart);
+        fp_in = fopen(filename, "rb");
+        if (!fp_in) {
+            printf("File parsing completed: %s does not exist\n", filename);
+        }
+    }
 
-				// Sorting the data chronologically.
-				MergeSort(DataArray, TempArray, 0, iData);
 
-				// Extract first and last time stamps 
-				if (first_cycle) { 
-					if (DataArray[1].time > 0)
-						first_ts = DataArray[1].time;
-					else
-						printf("ERROR: Cannot read first timestamp \n");
-					first_cycle = false;
-				}                    
-				if (DataArray[iData-1].time > 0)
-					last_ts = DataArray[iData-1].time;
-								
-				// Writing statistics and skipping the event builder, will sort everything twice as fast
-				if (stat == 1) continue;
-				                       
-				// Looking for correlations
-				if (corr > 0) 
-					correlations();
+    //Initializing the binary file object
+    LDF_file ldf(filename);
+    DATA_buffer data;
+    ldf_pos_index = lastRead;
+    float progress = 0.0;
 
-				// Writing to GASPWare
-				else if (gasp == 1) {
-					event_builder();
-					write_gasp();
-					totEvt += iEvt;
-					printf(" %3d events written to %s ", totEvt, outname);
-					write_time(ldf_pos_index, ldf.GetFileLength());
-				}
+    // Set file length
+    ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
+    ldf.GetFile().seekg(0, ldf.GetFile().end);
+    ldf.SetLength(ldf.GetFile().tellg());
+    ldf.GetFile().seekg(0, ldf.GetFile().beg);
+    ldf.GetFile().close();
+    if(lastRead == ldf.GetFileLength()){
+        return ldf.GetFileLength();
+    }
+    printf("Filename:  %s \nFile size: %.2f MB \n", filename, float(ldf.GetFileLength())/1048576);
 
-				// Writing event lists
-				else if (list == 1) {
-					event_builder_list();
-					write_list();
-					totEvt += iEvt;
-					printf(" %3d events written to %s ", totEvt, outname);
-					write_time(ldf_pos_index, ldf.GetFileLength());
-				}
+    // iData will be the last data index.
+    iData=0, iEvt=0;
 
-				// Writing to a ROOT Tree
-				else if (root == 1) {
-                    event_builder_tree();
-					totEvt += iEvt;
-					printf(" %3d events written to %s ", totEvt, outname);
-					write_time(ldf_pos_index, ldf.GetFileLength());
+    // Initializing the data array to zero
+    memset(DataArray,0,memoryuse);
+    memset(TempArray,0,memoryuse); //Used only when sorting
 
-				}
+    // Displaying the progress bar
+    progress = float(ldf_pos_index) / float(ldf.GetFileLength());
+    printProgress(progress);
+    cout << "wrote progress " << endl;
 
-                for(int v = old_iData; v < iData; v++){
-                    //clean traces from memory
-                    std::vector<unsigned int>().swap(DataArray[v].trace);
-                    std::vector<unsigned int>().swap(TempArray[v].trace);
-                }
-                                      
-				// We break this loop after the entire file is read and parsed.
-				if (data.GetRetval() == 2) { // last cycle.
-					
-					std::cout << std::endl;
-					// std::cout << "First time stamp: " << first_ts << "\t Last time stamp: " << last_ts << std::endl;
-					std::cout << "Finished reading complete file" << std::endl; 
-                     
-					// Checking file integrity 
-					run_good_chunks += data.GetNumChunks(); 
-					run_missing_chunks += data.GetNumMissing();
-                                                     
-                    break;
-				}
+    // read_ldf() will read a fixed number of spills at once from the binary file
+    // if ratemode is enabled, read_ldf() will process only the last part of the file
+    old_iData = iData;
+    cout << "start read ldf" << endl;
+    raw_list_size  += read_ldf(ldf, data, ldf_pos_index);
+    cout << "end read ldf" << endl;
+    good_list_size += iData;
 
-                cout << ldf_pos_index << endl;
-                                      
-				// We also break this loop when reaching the initially read file length. 
-				// This allows for reading out incomplete files or files that are currently being written.
-				if (ldf_pos_index > ldf.GetFileLength()) {
-					
-                    std::cout << std::endl;
-                    // std::cout << "First time stamp: " << first_ts << "\t Last time stamp: " << last_ts << std::endl;
-                    std::cout << "Finished reading incomplete file" << std::endl; 
-                    break;
-				}
+    /*for(int v = old_iData; v < iData; v++){
+        //clean traces from memory
+        std::vector<unsigned int>().swap(DataArray[v].trace);
+    }*/
 
-				fflush(stdout);
-				
-			} // End of cycling over a partition
-		
-		} // End of cycling over all Run partitions
+    // Sorting the data chronologically.
+    MergeSort(DataArray, TempArray, 0, iData);
+    cout << "finish merge sort" << endl;
+    cout << DataArray[1].time << endl;
+    cout << "iData: " <<  iData << endl;
+    // Extract first and last time stamps
+    if (first_cycle) {
+        if (DataArray[1].time > 0)
+            first_ts = DataArray[1].time;
+        else
+            printf("ERROR: Cannot read first timestamp \n");
+        first_cycle = false;
+    }
+    if (DataArray[iData-1].time > 0)
+        last_ts = DataArray[iData-1].time;
+    cout << "finished looking with iData " << endl;
 
-        // Printing statistics for each run if not in correlation mode
-        // Writing the root file to disk
-        if (corr == 0) {
-            write_stats();
-            memset(stats, 0, sizeof(stats));
-			if (root == 1 || stat == 1) {
-				rootfile->Write();
-				rootfile->Save();
-				rootfile->Close();
-			}
-        }  
+    // Looking for correlations
+    if (corr > 0)
+        correlations();
 
-		// Writing correlation statistics for each run to file
-		if (corr > 0)
-			write_correlations();
-        
-        std::cout << "Sorting completed!" << std::endl;
-    
-    } // end of all Runs
+    cout << "writing to file" << endl;
+    // Writing to a ROOT Tree
+    if (root == 1) {
+        cout << "event builder tree" << endl;
+        event_builder_tree();
+        cout << "event builder tree done" << endl;
+        totEvt += iEvt;
+        printf(" %3d events written to %s ", totEvt, outname);
+        write_time(ldf_pos_index, ldf.GetFileLength());
+    }
+    cout << "finished writing to file" << endl;
+
+    for(int v = old_iData; v < iData; v++){
+        //clean traces from memory
+        std::vector<unsigned int>().swap(DataArray[v].trace);
+        std::vector<unsigned int>().swap(TempArray[v].trace);
+    }
+
+    // We break this loop after the entire file is read and parsed.
+    if (data.GetRetval() == 2) { // last cycle.
+
+        std::cout << std::endl;
+        // std::cout << "First time stamp: " << first_ts << "\t Last time stamp: " << last_ts << std::endl;
+        std::cout << "Finished reading complete file" << std::endl;
+
+        // Checking file integrity
+        run_good_chunks += data.GetNumChunks();
+        run_missing_chunks += data.GetNumMissing();
+    }
+
+    // We also break this loop when reaching the initially read file length.
+    // This allows for reading out incomplete files or files that are currently being written.
+    if (ldf_pos_index > ldf.GetFileLength()) {
+
+        std::cout << std::endl;
+        // std::cout << "First time stamp: " << first_ts << "\t Last time stamp: " << last_ts << std::endl;
+        std::cout << "Finished reading incomplete file" << std::endl;
+    }
+
+    fflush(stdout);
+
+    // Printing statistics for each run if not in correlation mode
+    // Writing the root file to disk
+    if (corr == 0) {
+        write_stats();
+        cout << ldf_pos_index << endl;
+        memset(stats, 0, sizeof(stats));
+        if (root == 1 || stat == 1) {
+            cout << "Writing ROOT file" << endl;
+            rootfile->Write();
+            rootfile->Save();
+            rootfile->Close();
+            cout << "ROOT file written" << endl;
+        }
+        cout << "hej" << endl;
+    }
+    cout << "out of if" << endl;
+    // Writing correlation statistics for each run to file
+    if (corr > 0)
+        write_correlations();
+    cout << "end of run loop" << endl;
+    cout << "hello " << endl;
+    cout << ldf_pos_index << endl;
 
     free(DataArray);
     free(TempArray);
-    exit(0);
-
+    ldf.GetFile().close();
+    cout << "returning " << endl;
+    return ldf_pos_index;
 } //end of main
+
+
+/*
+
+ HOW does the ROOT event builder work:
+
+
+ 1. The detectors are defined in the config file. Numbering starts from 1
+ 2. Each distinct type represents a branch in the tree. The index corresponds to the array index (each branch is an array)
+ 3. For ADDBACK there can be several detectors of the same type and index.
+ They should be calibrated because all go in the same position.
+ 4. There will be at least 'fold' detectors in the event. Each individual index-type combination represents a detector.
+ 5. Note: in ROOT numbering starts from 0.
+
+ There are the following branches in the tree:
+
+ E_type1[index] - ADC data
+ E_type2[]
+ .
+ .
+ T_type1[index] - (HRT) timestamp difference between each branch and the beginning of the event with offset = 1000
+ T_type2[]
+ .
+ .
+ M_type1        - multiplicity for each branch
+ M_type2
+ .
+ .
+ MULT     - multiplicity of the event (sum of multiplicity of each branch)
+ TIME     - (LRT) timestamp difference between the event and the reference - if defined (proton pulse)
+ TIME_RUN - (LRT) timestamp in run_unit units (always)
+ */
+
+void xia4idsRunner::event_builder_tree() {
+
+
+
+    k=0; //the index of the data array 0<k<iData
+    int type=0, index=0, mult=0, e=0;
+    double evt_start=0, lrt_ref=0, lrt_run=0;
+
+    double hrt[detnum+1];
+    for(i=0; i<=detnum; i++)  hrt[i]=0;
+
+
+    int detcount[dettypes+1];
+    double energy[dettypes+1][detnum+1];
+    double traceIntegral[dettypes+1][detnum+1];
+    std::vector<unsigned int> trace[dettypes+1][detnum+1];
+
+
+    while ( k < iData) {
+        m=1;
+        evt_start=0;
+        mult=0;
+
+        for(i=1; i<=dettypes; i++) {
+            for (j=1; j<=maxnum[i]; j++){
+                energy[i][j]=0;
+                traceIntegral[i][j]=0;
+                if(savetraces){
+                    trace[i][j].clear();
+                }
+            }
+            detcount[i]=0;
+        }
+
+
+        //if we encounter a reference ADC
+        if (reftype != 0 && tmc[DataArray[k].modnum][DataArray[k].chnum] == reftype) {
+            tref = DataArray[k].time;
+            //~ //looking for the next reference
+            //~ l=k+1;
+            //~ while ( tmc[DataArray[l].modnum][DataArray[l].chnum] != reftype && l<iData)
+            //~ l++;
+            //~
+            //~ if (tmc[DataArray[l].modnum][DataArray[l].chnum] == reftype)
+            //~ next_tref = (DataArray[l].time - tref);
+            //~ else next_tref = 0;
+            k++;
+        }
+
+
+        //finding clusters of data
+        //m = number of signals inside the cluster
+        while ( m <= detnum && k+m < iData && DataArray[k+m].time - DataArray[k].time < timegate ) {
+            m++;
+            //if ref is inside an event we need to update the information about it
+            if (reftype !=0 && tmc[DataArray[k+m].modnum][DataArray[k+m].chnum] == reftype) {
+                tref = DataArray[k+m].time;
+                //~ l=k+m+1;
+                //~ //looking for the next reference
+                //~ while ( tmc[DataArray[l].modnum][DataArray[l].chnum] != reftype && l<iData)
+                //~ l++;
+                //~ if (tmc[DataArray[l].modnum][DataArray[l].chnum] == reftype)
+                //~ next_tref = (DataArray[l].time - tref);
+                //~ else next_tref = 0;
+            }
+        }
+
+        //checking to see what is inside the event
+        for(n=0; n<m; n++) {
+            type = tmc[DataArray[k+n].modnum][DataArray[k+n].chnum];
+            //looking for detector signals in order to calculate HRT
+            //we do not calculate hrt for reftype
+            if (   type  > 0  && type != reftype   )  {
+                detcount[type]++;
+                e++;
+                if(evt_start == 0)
+                    evt_start = DataArray[k+n].time;
+            }
+        }
+
+        ////// Checking the multiplicity
+
+        //there will be at least 'mult' detectors in the event
+        for (i=1; i<=dettypes; i++)
+
+            if (i != reftype) mult+=detcount[i];
+        if (mult < fold) {
+            k++;
+            continue;
+        }
+
+        //extracting event information
+        for (n=0; n<m; n++) {
+            type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];
+            index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
+
+            if (   type > 0  /*&& index != reftype*/ )  {
+                // HRT: high resolution time in digitizer units
+                hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
+                hrt[n] += DataArray[k+n].cfdtime;
+                // Reading the energy - performing addback if we have more detectors of the same type
+                //std::cout << "type: " << type << std::endl;
+                //std::cout << "index: " << index << std::endl;
+                //std::cout << "dettypes: " << dettypes << std::endl;
+                //std::cout << "detnum: " << detnum << std::endl;
+                //std::cout << "k+n = " << k+n << std::endl;
+                //std::cout << "energy[0][0]: " << energy[0][0] << std::endl;
+                //std::cout << "DataArray[k+n].energy: " << DataArray[k+n].energy << std::endl;
+                energy[type][index] += DataArray[k+n].energy;
+                cout << DataArray[k+n].traceIntegral << endl;
+                traceIntegral[type][index] += DataArray[k+n].traceIntegral;
+                if(savetraces) {
+                    trace[type][index] = DataArray[k+n].trace;
+                    std::vector<unsigned int>().swap(DataArray[k+n].trace);
+                    //must release the memory from the trace -- no better way to do this?
+                }
+            }
+        }
+
+
+        // LRT: low resolution time
+
+        //TIMESTAMP - always record this
+        lrt_run = 1 + DataArray[k].time/run_unit;
+
+        //Predefined reference (proton pulse)
+        if (reftype == 0)  // we don't define any reference (proton)
+            lrt_ref = 0;
+
+        else if (reftype > 0 && tref == 0) //signals at the beginning of data for which we don't have reference information
+            lrt_ref = 30000;
+        else  //signals for which we have ref
+            lrt_ref = (DataArray[k].time-tref)/ref_unit;
+
+
+        //finished extracting information for current event
+
+
+
+
+
+        //saving the event in ROOT TTree format
+
+        //TEventArray[iEvt].MULT  = mult;      // multiplicity
+
+        //TEventArray[iEvt].TIME_REF  = lrt_ref;    // time vs last reference type
+
+        //TEventArray[iEvt].TIME_RUN  = lrt_run;    // timestamp in run_unit units
+
+        MULT_branch = mult;
+        TIME_REF_branch = lrt_ref;
+        TIME_RUN_branch = lrt_run;
+
+
+        //NOTE: In ROOT numbering for leafs (index) starts from 0
+        for(n=0; n<m; n++) {
+            type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];
+            index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
+            //~if (index != reftype) {
+
+            //TEventArray[iEvt].E[type][index-1] = energy[type][index];
+            //TEventArray[iEvt].T[type][index-1] = hrt[n];
+            //TEventArray[iEvt].M[type]        = detcount[type];
+            //hrt[n] = 0;
+
+            E_branch[type][index-1] = energy[type][index];
+            TI_branch[type][index-1] = traceIntegral[type][index];
+            //cout << traceIntegral[type][index] << endl;
+            T_branch[type][index-1] = hrt[n];
+            if(savetraces){
+                for(int i = 0; i < trace[type][index].size(); i++){
+                    TRACE_branch[type][index-1][i] = trace[type][index][i];
+                }
+                TRACELEN_branch[type][index-1] = trace[type][index].size();
+            }
+            if(savetraces){
+                for(int i = 0; i < trace[type][index].size(); i++){
+                    std::vector<unsigned int>().swap(trace[type][index]);
+                    //must release the memory from the trace -- no better way to do this?
+                }
+            }
+
+
+            M_branch[type] = detcount[type];
+            hrt[n] = 0;
+
+            //~}
+
+        }
+
+        //~
+        //~ if (reftype > 0) {
+        //~ TEventArray[iEvt].E[reftype] = next_tref/lrtunit;
+        //~ TEventArray[iEvt].T[reftype] = tref/lrtunit;
+        //~ }
+
+        tree->Fill();
+
+        MULT_branch = 0;
+        TIME_REF_branch = 0.0;
+        TIME_RUN_branch = 0.0;
+        memset(E_branch, 0, sizeof(E_branch));
+        memset(TI_branch, 0, sizeof(TI_branch));
+        memset(T_branch, 0, sizeof(T_branch));
+        memset(M_branch, 0, sizeof(M_branch));
+        if(savetraces){
+            memset(TRACE_branch, 0, sizeof(TRACE_branch));
+            memset(TRACELEN_branch, 0, sizeof(TRACELEN_branch));
+            memset(trace, 0, sizeof(trace));
+        }
+
+        iEvt++;
+        k+=m;
+    }
+} //end of event_builder_tree.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

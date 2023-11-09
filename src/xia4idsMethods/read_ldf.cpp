@@ -232,6 +232,8 @@ int xia4idsRunner::read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
     //ofstream myfile;
     //myfile.open("Parsing_results.txt");
 
+    cout << "decodedList size " << decodedList_.size() << endl;
+
     for (int i = 0; i < decodedList_.size(); i++) {
 
         decodedEvent = decodedList_[i];

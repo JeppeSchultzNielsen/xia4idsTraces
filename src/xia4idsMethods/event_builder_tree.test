@@ -2,17 +2,17 @@
 /*
 
  HOW does the ROOT event builder work:
- 
+
 
  1. The detectors are defined in the config file. Numbering starts from 1
- 2. Each distinct type represents a branch in the tree. The index corresponds to the array index (each branch is an array)  
- 3. For ADDBACK there can be several detectors of the same type and index. 
+ 2. Each distinct type represents a branch in the tree. The index corresponds to the array index (each branch is an array)
+ 3. For ADDBACK there can be several detectors of the same type and index.
  They should be calibrated because all go in the same position.
  4. There will be at least 'fold' detectors in the event. Each individual index-type combination represents a detector.
  5. Note: in ROOT numbering starts from 0.
- 
+
  There are the following branches in the tree:
- 
+
  E_type1[index] - ADC data
  E_type2[]
  .
@@ -20,20 +20,21 @@
  T_type1[index] - (HRT) timestamp difference between each branch and the beginning of the event with offset = 1000
  T_type2[]
  .
- . 
+ .
  M_type1        - multiplicity for each branch
  M_type2
  .
- . 
+ .
  MULT     - multiplicity of the event (sum of multiplicity of each branch)
- TIME     - (LRT) timestamp difference between the event and the reference - if defined (proton pulse) 
+ TIME     - (LRT) timestamp difference between the event and the reference - if defined (proton pulse)
  TIME_RUN - (LRT) timestamp in run_unit units (always)
  */
 
+#include "xia4ids.hh"
 
 
 
-void event_builder_tree() {
+void xia4idsRunner::event_builder_tree() {
 
 
 
@@ -95,13 +96,10 @@ void event_builder_tree() {
                 //~ while ( tmc[DataArray[l].modnum][DataArray[l].chnum] != reftype && l<iData)
                 //~ l++;
                 //~ if (tmc[DataArray[l].modnum][DataArray[l].chnum] == reftype)
-                //~ next_tref = (DataArray[l].time - tref);  
+                //~ next_tref = (DataArray[l].time - tref);
                 //~ else next_tref = 0;
             }
         }
-
-
-
 
         //checking to see what is inside the event
         for(n=0; n<m; n++) {
@@ -116,11 +114,11 @@ void event_builder_tree() {
             }
         }
 
-
         ////// Checking the multiplicity
 
         //there will be at least 'mult' detectors in the event
         for (i=1; i<=dettypes; i++)
+
             if (i != reftype) mult+=detcount[i];
         if (mult < fold) {
             k++;
@@ -133,7 +131,6 @@ void event_builder_tree() {
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
 
             if (   type > 0  /*&& index != reftype*/ )  {
-
                 // HRT: high resolution time in digitizer units
                 hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
                 hrt[n] += DataArray[k+n].cfdtime;
@@ -146,6 +143,7 @@ void event_builder_tree() {
                 //std::cout << "energy[0][0]: " << energy[0][0] << std::endl;
                 //std::cout << "DataArray[k+n].energy: " << DataArray[k+n].energy << std::endl;
                 energy[type][index] += DataArray[k+n].energy;
+                //cout << DataArray[k+n].energy << endl;
                 traceIntegral[type][index] += DataArray[k+n].traceIntegral;
                 if(savetraces) {
                     trace[type][index] = DataArray[k+n].trace;
@@ -252,35 +250,35 @@ void event_builder_tree() {
     }
 } //end of event_builder_tree.h
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
 
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

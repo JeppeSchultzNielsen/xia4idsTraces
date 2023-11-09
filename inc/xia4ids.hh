@@ -36,6 +36,8 @@
 
 class xia4idsRunner{
 public:
+    int lastRead;
+    int  ldf_pos_index;
 
 //  GLOBAL VARIABLES
 //everything is initialized 0 by default
@@ -133,6 +135,13 @@ TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
 
  char *comment_line;
  char comment_string[MAX_NUM_DET][100];
+
+
+    xia4idsRunner(int runNumber){
+        this->runnumber = runNumber;
+        this->runstart = runNumber;
+        this->runstop = runNumber;
+    }
 
     int xia4ids(int argc, char **argv, int lastRead);
 

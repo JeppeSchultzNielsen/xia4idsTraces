@@ -302,16 +302,6 @@ void xia4idsRunner::read_config(int argc, char **argv){
             else reference_link = link_type[i];
         }
 
-
-    if (rate == 0) {                       //Normal mode
-        printf("Start with run number:\t");
-// scanf("%d", &runstart);
-        std::cin >> runstart;
-        printf("Stop at run number:\t");
-// scanf("%d", &runstop);
-        std::cin >> runstop;
-    }
-
 //else {                                //Ratemeter mode
 // printf("How many blocks (buffers) from the end of file you want to read? \t");
 // scanf("%d", &rate_eof_blocks);
