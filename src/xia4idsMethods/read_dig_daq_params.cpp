@@ -1,4 +1,6 @@
-void read_dig_daq_params(int argc, char **argv) {
+#include "xia4ids.hh"
+
+void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
 
     int status, module, channel, count=0;
     double cal[MAX_CAL];
