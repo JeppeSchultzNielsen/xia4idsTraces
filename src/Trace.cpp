@@ -62,7 +62,7 @@ void Trace::findTraceParams() {
     int lowBound = 10;
     int highBound = 15;
     maxPos = 72;
-    double stdThresh = 50;
+    double stdThresh = 30;
     double secondStdThresh = 50;
 
     int qdcAdded = 0;
@@ -73,6 +73,9 @@ void Trace::findTraceParams() {
 
     auto basStdLeft = getRecursiveBaselineAndStd(0,maxPos-lowBound, stdThresh, make_pair(0,1e9));
     auto basStdRight = getRecursiveBaselineAndStd(maxPos + highBound,data.size(), stdThresh, make_pair(0,1e9));
+
+    //auto basStdLeft = getBaselineAndStd(0,maxPos-lowBound);
+    //auto basStdRight = getBaselineAndStd(maxPos + highBound,data.size());
 
     double std = 0;
     baseline = 0;
@@ -86,7 +89,7 @@ void Trace::findTraceParams() {
         TFile* file = TFile::Open("test.root", "update");
         traceHist -> Write();
         file->Close();*/
-        qdc = 0;
+        qdc = -1;
         baseline = 0;
         return;
     }
@@ -100,82 +103,15 @@ void Trace::findTraceParams() {
         baseline = basStdRight.first;
     }
 
-    /*int added = 0;
-    auto basStd = getBaselineAndStd(0,maxPos-lowBound);
-    baseline = basStd.first;
-    double leftStd = basStd.second;
-    if(leftStd > stdThresh){
-        basStd = getBaselineAndStd(maxPos + highBound,data.size());
-        double rightBaseline = basStd.first;
-        double rightStd  = basStd.second;
-        if(rightStd < stdThresh){
-            //cout << "Choosing right baseline under threshold: " << endl;
-           // cout << "calculate left baseline " << baseline << " with std " << std << " right baseline " << rightBaseline << " with std " << rightStd << endl;
-            baseline = rightBaseline;
-        }
-        else{
-            if(rightStd > secondStdThresh and leftStd > secondStdThresh){
-                cout << "Rejecting event due to too large std: " << endl;
-                cout << "calculate left baseline " << baseline << " with std " << leftStd << " right baseline " << rightBaseline << " with std " << rightStd << endl;
-                qdc = 0;
-                max = max - baseline;
-                TH1D* traceHist = new TH1D(Form("Max %f Integral %f Baseline %f",max,qdc,baseline),Form("Max %f Integral %f Baseline %f",max,qdc,baseline),data.size(),0,data.size());
-                for(int i = 0; i < data.size(); i++){
-                    traceHist ->SetBinContent(i,data[i]);
-                }
-                TFile* file = TFile::Open("test.root", "update");
-                traceHist -> Write();
-                file->Close();
-                return;
-            }
-            if(rightStd < leftStd){
-                //cout << "Choosing right std under second threshold:" << endl;
-                //cout << "calculate left baseline " << baseline << " with std " << std << " right baseline " << rightBaseline << " with std " << rightStd << endl;
-                baseline = rightBaseline;
-            }
-            else{
-                //cout << "Choosing left std under second threshold:" << endl;
-                //cout << "calculate left baseline " << baseline << " with std " << std << " right baseline " << rightBaseline << " with std " << rightStd << endl;
-            }
-        }
+    if(baseline > 8000){
+        cout << "Baseline too high: " << baseline << endl;
     }
-    else{
-        //cout << "Accepting left baseline: " << endl;
-        //cout << "calculate left baseline " << baseline << " with std " << std << endl;
-    }*/
-    //cout << "using baseline " << baseline << endl;
+    if(baseline < 5000){
+        cout << "Baseline too low: " << baseline << endl;
+    }
+
     qdc = qdc - baseline*qdcAdded;
     max = max - baseline;
-
-    /*if(qdc > 150e3){
-        TH1D* traceHist = new TH1D(Form("Max %f Integral %f Baseline %f",max,qdc,baseline),Form("Max %f Integral %f Baseline %f",max,qdc,baseline),data.size(),0,data.size());
-        for(int i = 0; i < data.size(); i++){
-            traceHist ->SetBinContent(i,data[i]);
-        }
-        if(maxPos > data.size()/2){
-            //peak is in left side of trace
-            int added = 0;
-            for(int i = 0; i < maxPos-20; i++){ //subtract 20 to make sure we are clear of the peak
-                baseline += data[i];
-                cout << data[i] << endl;
-                added++;
-            }
-            baseline /= added;
-            cout << "baseline " << baseline << endl;
-        }
-        else{
-            //peak is in right side of trace
-            for(int i = maxPos+20; i < data.size(); i++){ //subtract 20 to make sure we are clear of the peak
-                baseline += data[i];
-                cout << data[i] << endl;
-            }
-            baseline /= 20;
-            cout << "baseline " << baseline << endl;
-        }
-        TFile* file = TFile::Open("test.root", "update");
-        traceHist -> Write();
-        file->Close();
-    }*/
 }
 
 void Trace::subtractBaseline() {

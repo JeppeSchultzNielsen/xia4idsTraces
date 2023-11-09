@@ -188,6 +188,7 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
                     data->SetHRT(phase);
                     data->SetTraceIntegral(phaseAlpha.second);
                 }
+
                 delete trace;
             }
         }
