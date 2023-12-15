@@ -48,13 +48,14 @@
 
 
 typedef struct dataStruct {
-    double  time;
-    double cfdtime;
+    long double  time;
+    long double cfdtime;
     double traceIntegral;
     //short int energy;
     double energy;
     short int chnum;
     short int modnum;
+    short int flag;
     std::vector<unsigned int> trace;
 } dataStruct;
 

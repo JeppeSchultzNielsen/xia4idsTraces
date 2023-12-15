@@ -269,9 +269,13 @@ int xia4idsRunner::read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
         DataArray[iData].time	= decodedEvent->GetTime() + delay[decodedEvent->GetModuleNumber()][decodedEvent->GetChannelNumber()];
         DataArray[iData].cfdtime= decodedEvent->GetHRT();
         DataArray[iData].traceIntegral = decodedEvent->GetTraceIntegral();
-        //cout << "DataArray " << decodedEvent->GetTraceIntegral() << endl;
-        if(savetraces){
-            DataArray[iData].trace	= decodedEvent->GetTrace();
+        DataArray[iData].trace	= decodedEvent->GetTrace();
+        DataArray[iData].flag	= 0;
+        if (decodedEvent->IsSaturated()) {
+            DataArray[iData].flag	+= 1;
+        }
+        if (decodedEvent->IsPileup()) {
+            DataArray[iData].flag	+= 10;
         }
 
         // printf("mod = %d \t chan = %d \t time = %lf \t %lf \n", decodedEvent->GetModuleNumber(), decodedEvent->GetChannelNumber(), decodedEvent->GetTime(), decodedEvent->GetCfdFractionalTime());
@@ -288,13 +292,10 @@ int xia4idsRunner::read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index) {
                 if (DataArray[iData].chnum == secondCh[j] && DataArray[iData].modnum == secondMod[j])
                     DataArray[iData].time += CORR_DELAY;
         iData++;
-
-
-
     }
     //Cleaning up
     for (int i = 0; i < decodedList_.size(); i++)
-        //decodedList_[i]->Clear(); why is there a memory leak unless this is commented out?
+        //decodedList_[i]->Clear(); //why is there a memory leak unless this is commented out?
         delete decodedList_[i];
 
     ldf.GetFile().close();

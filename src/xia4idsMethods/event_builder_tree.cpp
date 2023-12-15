@@ -51,6 +51,10 @@ void xia4idsRunner::event_builder_tree() {
     double traceIntegral[dettypes+1][detnum+1];
     std::vector<unsigned int> trace[dettypes+1][detnum+1];
 
+    bool isCoin = false;
+    int noBetaHits = 0;
+    int noIndieHits = 0;
+
 
     while ( k < iData) {
         m=1;
@@ -72,14 +76,6 @@ void xia4idsRunner::event_builder_tree() {
         //if we encounter a reference ADC
         if (reftype != 0 && tmc[DataArray[k].modnum][DataArray[k].chnum] == reftype) {
             tref = DataArray[k].time;
-            //~ //looking for the next reference
-            //~ l=k+1;
-            //~ while ( tmc[DataArray[l].modnum][DataArray[l].chnum] != reftype && l<iData)
-            //~ l++;
-            //~
-            //~ if (tmc[DataArray[l].modnum][DataArray[l].chnum] == reftype)
-            //~ next_tref = (DataArray[l].time - tref);
-            //~ else next_tref = 0;
             k++;
         }
 
@@ -91,18 +87,15 @@ void xia4idsRunner::event_builder_tree() {
             //if ref is inside an event we need to update the information about it
             if (reftype !=0 && tmc[DataArray[k+m].modnum][DataArray[k+m].chnum] == reftype) {
                 tref = DataArray[k+m].time;
-                //~ l=k+m+1;
-                //~ //looking for the next reference
-                //~ while ( tmc[DataArray[l].modnum][DataArray[l].chnum] != reftype && l<iData)
-                //~ l++;
-                //~ if (tmc[DataArray[l].modnum][DataArray[l].chnum] == reftype)
-                //~ next_tref = (DataArray[l].time - tref);
-                //~ else next_tref = 0;
             }
         }
 
 
 
+        //to be an INDIE TOF coincidence, there needs to be atleast 2 beta signals and 2 indie signals
+        isCoin = false;
+        noBetaHits = 0;
+        noIndieHits = 0;
 
         //checking to see what is inside the event
         for(n=0; n<m; n++) {
@@ -111,9 +104,23 @@ void xia4idsRunner::event_builder_tree() {
             //we do not calculate hrt for reftype
             if (   type  > 0  && type != reftype   )  {
                 detcount[type]++;
+                if(onlyCoin){
+                    if(typeNames[type] == "Beta")
+                        noBetaHits++;
+                    if(typeNames[type] == "INDiE")
+                        noIndieHits++;
+                }
                 e++;
                 if(evt_start == 0)
                     evt_start = DataArray[k+n].time;
+            }
+        }
+
+        if(m >= 4){
+            if(onlyCoin){
+                if(noBetaHits >= 2 && noIndieHits >= 2){
+                    isCoin = true;
+                }
             }
         }
 
@@ -134,28 +141,44 @@ void xia4idsRunner::event_builder_tree() {
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
 
             if (   type > 0  /*&& index != reftype*/ )  {
-
-                // HRT: high resolution time in digitizer units
                 hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
-                hrt[n] += DataArray[k+n].cfdtime;
-                // Reading the energy - performing addback if we have more detectors of the same type
-                //std::cout << "type: " << type << std::endl;
-                //std::cout << "index: " << index << std::endl;
-                //std::cout << "dettypes: " << dettypes << std::endl;
-                //std::cout << "detnum: " << detnum << std::endl;
-                //std::cout << "k+n = " << k+n << std::endl;
-                //std::cout << "energy[0][0]: " << energy[0][0] << std::endl;
-                //std::cout << "DataArray[k+n].energy: " << DataArray[k+n].energy << std::endl;
                 energy[type][index] += DataArray[k+n].energy;
                 traceIntegral[type][index] += DataArray[k+n].traceIntegral;
-                if(savetraces) {
-                    trace[type][index] = DataArray[k+n].trace;
-                    std::vector<unsigned int>().swap(DataArray[k+n].trace);
-                    //must release the memory from the trace -- no better way to do this?
+                double phase = 0;
+
+                if( (onlyCoin && isCoin) or !onlyCoin ){
+                    if(savetraces) {
+                        trace[type][index] = DataArray[k+n].trace;
+                    }
+                    //cout << "type: " << type << " index: " << index << " energy: " << DataArray[k+n].energy << " time: " << DataArray[k+n].time << " cfdtime: " << DataArray[k+n].cfdtime << " evt_start: " << evt_start << endl;
+                    /*if(DataArray[k+n].trace.size() > 0){
+                        if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum]->isReady){
+                            Trace *trace = new Trace(DataArray[k+n].trace);
+                            trace -> findTraceParams();
+                            trace -> subtractBaseline();
+                            if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "INDiE"){
+                                //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
+                                auto phaseAlpha = static_cast<DigDaqParamINDiE*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
+                                phase = phaseAlpha.first;
+                                hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
+                                traceIntegral[type][index] = trace->qdc;
+                            }
+                            if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "Beta"){
+                                auto phaseAlpha = static_cast<DigDaqParamBeta*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
+                                phase = phaseAlpha.first;
+                                hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
+                                traceIntegral[type][index] = trace->qdc;
+                            }
+                            trace->clear();
+                            delete trace;
+                        }
+                    }*/
                 }
+                //hrt[n] = 1000 + DataArray[k+n].time - evt_start; //just to test. this should be removed later
+                std::vector<unsigned int>().swap(DataArray[k+n].trace);
+                //must release the memory from the trace -- no better way to do this?
             }
         }
-
 
         // LRT: low resolution time
 
@@ -171,41 +194,18 @@ void xia4idsRunner::event_builder_tree() {
         else  //signals for which we have ref
             lrt_ref = (DataArray[k].time-tref)/ref_unit;
 
-
-        //finished extracting information for current event
-
-
-
-
-
-        //saving the event in ROOT TTree format
-
-        //TEventArray[iEvt].MULT  = mult;      // multiplicity
-
-        //TEventArray[iEvt].TIME_REF  = lrt_ref;    // time vs last reference type
-
-        //TEventArray[iEvt].TIME_RUN  = lrt_run;    // timestamp in run_unit units
-
         MULT_branch = mult;
         TIME_REF_branch = lrt_ref;
         TIME_RUN_branch = lrt_run;
 
-
-        //NOTE: In ROOT numbering for leafs (index) starts from 0
         for(n=0; n<m; n++) {
             type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
-            //~if (index != reftype) {
-
-            //TEventArray[iEvt].E[type][index-1] = energy[type][index];
-            //TEventArray[iEvt].T[type][index-1] = hrt[n];
-            //TEventArray[iEvt].M[type]        = detcount[type];
-            //hrt[n] = 0;
 
             E_branch[type][index-1] = energy[type][index];
             TI_branch[type][index-1] = traceIntegral[type][index];
-            //cout << traceIntegral[type][index] << endl;
             T_branch[type][index-1] = hrt[n];
+            F_branch[type][index-1] = DataArray[k+n].flag;
             if(savetraces){
                 for(int i = 0; i < trace[type][index].size(); i++){
                     TRACE_branch[type][index-1][i] = trace[type][index][i];
@@ -226,13 +226,6 @@ void xia4idsRunner::event_builder_tree() {
             //~}
 
         }
-
-        //~
-        //~ if (reftype > 0) {
-        //~ TEventArray[iEvt].E[reftype] = next_tref/lrtunit;
-        //~ TEventArray[iEvt].T[reftype] = tref/lrtunit;
-        //~ }
-
         tree->Fill();
 
         MULT_branch = 0;
@@ -242,6 +235,7 @@ void xia4idsRunner::event_builder_tree() {
         memset(TI_branch, 0, sizeof(TI_branch));
         memset(T_branch, 0, sizeof(T_branch));
         memset(M_branch, 0, sizeof(M_branch));
+        memset(F_branch, 0, sizeof(F_branch));
         if(savetraces){
             memset(TRACE_branch, 0, sizeof(TRACE_branch));
             memset(TRACELEN_branch, 0, sizeof(TRACELEN_branch));

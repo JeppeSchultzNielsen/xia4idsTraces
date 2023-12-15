@@ -18,7 +18,7 @@ void xia4idsRunner::Merge(struct dataStruct *array, struct dataStruct *tempArray
         }
         else
         {
-            tempArray[pos++] = array[lpos++];
+            tempArray[pos++] = array[rpos++];
         }
     }
     while(lpos <= mid)  tempArray[pos++] = array[lpos++];

@@ -14,10 +14,14 @@ public:
     vector<double> data;
     double baseline;
     double max;
-    double maxPos;
+    double min;
+    double val0;
+    int maxPos;
     double phase;
     double qdc;
     int minBaseWidth;
+    bool minGreaterThanMax = false;
+
     Trace(vector<unsigned int> data){
         for(int i = 0; i < data.size(); i++){
             this->data.push_back(data[i]);

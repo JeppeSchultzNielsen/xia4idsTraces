@@ -18,7 +18,7 @@ void XiaData::Clear() {
     eventTimeHigh_ = eventTimeLow_ = externalTimeLow_ = externalTimeHigh_ = traceLength_ = 0;
     traceIntegral_ = traceMax_ = 0;
 
-    eSums_.clear();
-    qdc_.clear();
-    trace_.clear();
+    std::vector<unsigned int>().swap(trace_);
+    std::vector<unsigned int>().swap(eSums_);
+    std::vector<unsigned int>().swap(qdc_);
 }

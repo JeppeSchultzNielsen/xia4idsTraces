@@ -168,30 +168,6 @@ int Unpacker::DecodeBuffer(std::vector<XiaData*>& result, unsigned int* buf, con
         for(int i = 0; i < traceLength/2; i++){
             DecodeTraceWord(buf[i], *data, mask_);
         }
-        double phase = 0;
-        if(traceLength > 0){
-            if(dig_daq_params[modNum][data->GetChannelNumber()]->isReady){
-                Trace *trace = new Trace(data->GetTrace());
-                trace -> findTraceParams();
-                trace -> subtractBaseline();
-                if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "INDiE"){
-                    //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
-                    auto phaseAlpha = static_cast<DigDaqParamINDiE*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
-                    phase = phaseAlpha.first;
-                    data->SetHRT(phase);
-                    data->SetTraceIntegral(trace->qdc);
-                }
-                if(dig_daq_params[modNum][data->GetChannelNumber()] -> detType == "Beta"){
-                    auto phaseAlpha = static_cast<DigDaqParamBeta*>(dig_daq_params[modNum][data->GetChannelNumber()])->calculatePhase(trace);
-                    phase = phaseAlpha.first;
-                    //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
-                    data->SetHRT(phase);
-                    data->SetTraceIntegral(phaseAlpha.second);
-                }
-                delete trace;
-            }
-        }
-
 
         result.push_back(data);
         // result[i++] = data;

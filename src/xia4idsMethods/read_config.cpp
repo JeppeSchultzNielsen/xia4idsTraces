@@ -93,6 +93,7 @@ void xia4idsRunner::read_config(int argc, char **argv){
     if(!fscanf(input_file,"Fold  %d\n",    &fold)) { printf("ERROR: Cannot read <fold> from '%s'\n", argv[1]); exit(0);}
 
     fscanf(input_file,"Traces  %d\n",    &savetraces);
+    fscanf(input_file,"OnlyCoin  %d\n",    &onlyCoin);
     printf("Successfully read configuration parameters. \n");
 
 
@@ -113,6 +114,7 @@ void xia4idsRunner::read_config(int argc, char **argv){
 
             getline(&comment_line, &nbytes, input_file);
             sscanf(comment_line, "%s", comment_string[line]);
+            typeNames[config_coding[line][1]] = comment_string[line];
             column=0;
             line++;
 //printf("\n");

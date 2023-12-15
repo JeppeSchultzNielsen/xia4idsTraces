@@ -34,6 +34,8 @@ public:
     DigDaqParam();
 
     pair <double,double> calculatePhase(Trace &trace);
+
+
 };
 
 class DigDaqParamINDiE : public DigDaqParam {

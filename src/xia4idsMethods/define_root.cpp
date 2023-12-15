@@ -28,6 +28,7 @@ void xia4idsRunner::define_root() {
         tree->Branch(Form("TraceIntegral_%s", root_string[i]), TI_branch[i], Form("TI_%s[%d]/D",root_string[i],maxnum[i]));
         tree->Branch(Form(  "Time_%s", root_string[i]), T_branch[i], Form("T_%s[%d]/D",root_string[i],maxnum[i]));
         tree->Branch(Form(  "Mult_%s", root_string[i]),&M_branch[i], Form("M_%s/I"    ,root_string[i]            ));
+        tree->Branch(Form(  "Flag_%s", root_string[i]),&F_branch[i], Form("F_%s[%d]/I" ,root_string[i],maxnum[i]));
         if(savetraces){
             tree->Branch(Form("TraceLen_%s", root_string[i]), TRACELEN_branch[i], Form("TL_%s[%d]/I",root_string[i],maxnum[i]));
             tree->Branch(Form("Trace_%s", root_string[i]), TRACE_branch[i], Form("Trace_%s[%d][130]",root_string[i],maxnum[i]));

@@ -25,6 +25,7 @@
 #include <sstream>
 #include <vector>
 #include <utility>
+#include <iomanip>
 
 #include "LDFReader.h"
 #include "XiaData.h"
@@ -87,7 +88,9 @@ start[MAX_NUM_DET][MAX_NUM_DETTYPES],   // start for the pair_tac
 stop[MAX_NUM_DET][MAX_NUM_DETTYPES],    // stop for the pair_tac
 lmc[MAX_NUM_MOD][MAX_NUM_CHN];        // line [mod][chan] -> returns the index of the config line
 
- int corr, list, gasp, root, stat, rate, rate_root, savetraces;
+string typeNames[MAX_NUM_DETTYPES];
+
+ int corr, list, gasp, root, stat, rate, rate_root, savetraces, onlyCoin;
  int list_evSize, reference_link;
  int corr_hist[MAX_NUM_DET][RANGE];
  int firstMod[MAX_NUM_DET], secondMod[MAX_NUM_DET], firstCh[MAX_NUM_DET], secondCh[MAX_NUM_DET];
@@ -121,6 +124,7 @@ lmc[MAX_NUM_MOD][MAX_NUM_CHN];        // line [mod][chan] -> returns the index o
  double E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET];
  double TI_branch[MAX_NUM_DETTYPES][MAX_NUM_DET];
  double T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET] ;
+ int F_branch[MAX_NUM_DETTYPES][MAX_NUM_DET] ;
  int   //E_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
 //T_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
 TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
