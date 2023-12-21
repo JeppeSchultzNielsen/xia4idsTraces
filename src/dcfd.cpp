@@ -4,11 +4,11 @@
 
 #include "dcfd.hh"
 
-double Dcfd::cfd(Trace *trace, int i) {
+double Dcfd::cfd(const Trace *trace, int i) {
     return FF(trace, i)*(1-w) - FF(trace, i-D);
 }
 
-double Dcfd::FF(Trace *trace, int i) {
+double Dcfd::FF(const Trace *trace, int i) {
     double ff = 0;
     for(int j = i-(FL-1); j < i; j++){
         ff += trace->data[j];
@@ -22,7 +22,7 @@ double Dcfd::FF(Trace *trace, int i) {
     return ff;
 }
 
-pair<int,int> Dcfd::findValidRange(Trace *trace) {
+pair<int,int> Dcfd::findValidRange(const Trace *trace) {
     double minVal = 1e9;
     double maxVal = -1e9;
     int maxPos = 2*(FL+FG-1)+D;
@@ -40,30 +40,55 @@ pair<int,int> Dcfd::findValidRange(Trace *trace) {
         double cfdVal = cfd(trace, i);
         if(cfdVal > 0){
             maxVal = cfdVal;
-            maxPos = max(i-5,2*(FL+FG-1)+D);
+            maxPos = max(i-2,2*(FL+FG-1)+D);
             break;
         }
     }
     return make_pair(maxPos, minPos);
 }
 
-double Dcfd::getPhase(Trace *trace) {
+double Dcfd::getPhase(const Trace *trace) {
     double prevCfd = 0;
     double cfdVal = 0;
-    int breakPoint = 0;
-    auto fromTo = findValidRange(trace);
-    for(int i = fromTo.first; i < fromTo.second; i++){
+    int breakPoint = -1;
+    //cout << "FL: " << FL << " FG: " << FG << " D: " << D << endl;
+    vector<double> cfdVals = {};
+    auto fromTo  = findValidRange(trace);
+    for(int i = 0; i < trace->data.size(); i++) {
+        if(i < fromTo.first or i > fromTo.second) {
+            cfdVals.push_back(0);
+        }
+        else{
+            cfdVal = cfd(trace, i);
+            cfdVals.push_back(cfdVal);
+        }
+    }
+    for(int i = 0; i < trace->data.size(); i++){
+        if(i < fromTo.first or i > fromTo.second) {
+            cfdVals.push_back(0);
+            continue;
+        }
         cfdVal = cfd(trace, i);
-        if(cfdVal < 0 && prevCfd > 0){
+        cfdVals.push_back(cfdVal);
+        if(cfdVal < 0 && prevCfd >= 0){
             breakPoint = i;
             break;
         }
         prevCfd = cfdVal;
     }
-    if(breakPoint == 0){
+    if(breakPoint == -1){
         return -10000;
     }
     double f = (prevCfd)/(prevCfd - cfdVal);
     double x = breakPoint - ((breakPoint-1)-breakPoint)*cfdVal/(prevCfd - cfdVal);
-    return x;
+    vector<double> params = polyCfd->CalculatePoly3(cfdVals,breakPoint-2);
+    double phase = polyCfd->getPol3Zero(params,breakPoint-1,breakPoint);
+    vector<double>().swap(cfdVals);
+    vector<double>().swap(params);
+    if(phase < 0){
+        return x; //use linear interpolation instead
+    }
+    else{
+        return phase;
+    }
 }

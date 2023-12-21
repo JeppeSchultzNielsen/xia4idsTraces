@@ -21,6 +21,7 @@
 #include "TCanvas.h"
 #include "Trace.hh"
 #include "TH1D.h"
+#include "dcfd.hh"
 
 using namespace std;
 class DigDaqParam {
@@ -32,8 +33,24 @@ public:
     bool isSingleParam = false;
     bool freeBetaGamma = false;
     DigDaqParam();
+    bool useCfd = false;
+    int FL;
+    int FG;
+    int D;
+    double w;
+    Dcfd* dcfd;
 
     pair <double,double> calculatePhase(Trace &trace);
+
+    void initializeDcfd(int FL, int FG, int D, double w){
+        useCfd = true;
+        this->FL = FL;
+        this->FG = FG;
+        this->D = D;
+        this->w = w;
+        dcfd = new Dcfd(FL, FG, D, w);
+        isReady = true;
+    }
 
 
 };

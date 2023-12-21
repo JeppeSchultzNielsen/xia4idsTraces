@@ -12,18 +12,21 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <complex>
 //adapted from PAASS
 
 
 
 using namespace std;
 
-class polyCfd {
+class PolyCfd {
 public:
+    PolyCfd(){}
     vector<double> CalculatePoly2(vector<double> &data, const unsigned int &startBin);
 
-    vector<double> CalculatePoly3(vector<double> &data, const unsigned int &startBin);
+    vector<double> CalculatePoly3(vector<double> data, const unsigned int &startBin);
 
+    double getPol3Zero(vector<double> &coeffs, double low, double high);
 };
 
 #endif //XIA4IDS_POLYCFD_HH

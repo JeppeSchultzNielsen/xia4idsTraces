@@ -137,6 +137,9 @@ int CalcPmtJacobian(const gsl_vector *x, void *FitData, gsl_matrix *J) {
 }
 
 pair <double,double> DigDaqParamINDiE::calculatePhase(const Trace* trace){
+    if(useCfd){
+        return make_pair(dcfd->getPhase(trace), trace->qdc);
+    }
     gsl_multifit_function_fdf f;
     int info;
     const size_t n = trace->data.size();
@@ -303,6 +306,9 @@ double DigDaqParamBeta::fitFun(double x, double phi, double alpha, double beta, 
 }
 
 pair <double,double> DigDaqParamBeta::calculatePhase(const Trace* trace){
+    if(useCfd){
+        return make_pair(dcfd->getPhase(trace), trace->qdc);
+    }
     gsl_multifit_function_fdf f;
     int info;
     const size_t n = trace -> data.size();

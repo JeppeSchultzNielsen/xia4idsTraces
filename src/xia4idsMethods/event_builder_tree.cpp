@@ -116,11 +116,9 @@ void xia4idsRunner::event_builder_tree() {
             }
         }
 
-        if(m >= 4){
-            if(onlyCoin){
-                if(noBetaHits >= 2 && noIndieHits >= 2){
-                    isCoin = true;
-                }
+        if(onlyCoin){
+            if(noBetaHits >= 2 && noIndieHits >= 2){
+                isCoin = true;
             }
         }
 
@@ -139,40 +137,47 @@ void xia4idsRunner::event_builder_tree() {
         for (n=0; n<m; n++) {
             type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
-
             if (   type > 0  /*&& index != reftype*/ )  {
                 hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
                 energy[type][index] += DataArray[k+n].energy;
                 traceIntegral[type][index] += DataArray[k+n].traceIntegral;
                 double phase = 0;
-
                 if( (onlyCoin && isCoin) or !onlyCoin ){
                     if(savetraces) {
                         trace[type][index] = DataArray[k+n].trace;
                     }
                     //cout << "type: " << type << " index: " << index << " energy: " << DataArray[k+n].energy << " time: " << DataArray[k+n].time << " cfdtime: " << DataArray[k+n].cfdtime << " evt_start: " << evt_start << endl;
-                    /*if(DataArray[k+n].trace.size() > 0){
+
+                    if(DataArray[k+n].trace.size() > 0){
                         if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum]->isReady){
                             Trace *trace = new Trace(DataArray[k+n].trace);
                             trace -> findTraceParams();
                             trace -> subtractBaseline();
-                            if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "INDiE"){
-                                //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
-                                auto phaseAlpha = static_cast<DigDaqParamINDiE*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
-                                phase = phaseAlpha.first;
+                            if(trace -> minGreaterThanMax){
                                 hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
-                                traceIntegral[type][index] = trace->qdc;
+                                traceIntegral[type][index] = -1000;
                             }
-                            if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "Beta"){
-                                auto phaseAlpha = static_cast<DigDaqParamBeta*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
-                                phase = phaseAlpha.first;
-                                hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
-                                traceIntegral[type][index] = trace->qdc;
+                            else{
+                                if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "INDiE"){
+                                    //i believe that the trace starts at the "filter time", so simply adding the found phase should give the correct time now?
+                                    auto phaseAlpha = static_cast<DigDaqParamINDiE*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
+                                    phase = phaseAlpha.first;
+                                    //cout << phase << endl ;
+                                    hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
+                                    traceIntegral[type][index] = trace->qdc;
+                                }
+                                if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum] -> detType == "Beta"){
+                                    auto phaseAlpha = static_cast<DigDaqParamBeta*>(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum])->calculatePhase(trace);
+                                    phase = phaseAlpha.first;
+                                    //cout << phase << endl ;
+                                    hrt[n] = 1000 + DataArray[k+n].time - evt_start + phase; //if we use tracefitting we should not use the cfdtime.
+                                    traceIntegral[type][index] = trace->qdc;
+                                }
                             }
                             trace->clear();
                             delete trace;
                         }
-                    }*/
+                    }
                 }
                 //hrt[n] = 1000 + DataArray[k+n].time - evt_start; //just to test. this should be removed later
                 std::vector<unsigned int>().swap(DataArray[k+n].trace);
