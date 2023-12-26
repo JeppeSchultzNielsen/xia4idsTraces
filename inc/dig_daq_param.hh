@@ -22,6 +22,7 @@
 #include "Trace.hh"
 #include "TH1D.h"
 #include "dcfd.hh"
+#include "polyCfd.hh"
 
 using namespace std;
 class DigDaqParam {
@@ -34,11 +35,15 @@ public:
     bool freeBetaGamma = false;
     DigDaqParam();
     bool useCfd = false;
+    bool usePolyCfd = false;
     int FL;
     int FG;
     int D;
     double w;
     Dcfd* dcfd;
+    PolyCfd* polyCfd;
+    double thresh;
+
 
     pair <double,double> calculatePhase(Trace &trace);
 
@@ -52,7 +57,11 @@ public:
         isReady = true;
     }
 
-
+    void initializePolyCfd(double threshold){
+        usePolyCfd = true;
+        polyCfd = new PolyCfd(threshold);
+        isReady = true;
+    }
 };
 
 class DigDaqParamINDiE : public DigDaqParam {

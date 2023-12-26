@@ -14,7 +14,7 @@ public:
     int FG;
     int D;
     double w;
-    PolyCfd* polyCfd = new PolyCfd();
+    PolyCfd* polyCfd = new PolyCfd(0.0);
 
     Dcfd(int FL, int FG, int D, double w){
         this->FL = FL;

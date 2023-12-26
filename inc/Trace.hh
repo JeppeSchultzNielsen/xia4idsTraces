@@ -21,6 +21,7 @@ public:
     double qdc;
     int minBaseWidth;
     bool minGreaterThanMax = false;
+    bool multiPeakedSpectrum = false;
 
     Trace(vector<unsigned int> data){
         for(int i = 0; i < data.size(); i++){

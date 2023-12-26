@@ -63,6 +63,17 @@ void Trace::findTraceParams() {
             minPos = i;
         }
     }
+
+    //check if there are multiple peaks in the spectrum.
+    //if there are, the trace is not suitable for analysis
+    for(int i = 0; i < data.size(); i++){
+        if(i < maxPos + 20 and i > maxPos - 20){
+            continue;
+        }
+        if(data[i] > max/2){
+            //multiPeakedSpectrum = true;
+        }
+    }
     val0 = data[0];
     if( abs(min-val0) > abs(max-val0)){
         minGreaterThanMax = true;
@@ -85,6 +96,9 @@ void Trace::findTraceParams() {
 
     qdc = qdc - baseline*qdcAdded;
     max = max - baseline;
+    if(multiPeakedSpectrum){
+        //qdc = -10000;
+    }
 }
 
 void Trace::subtractBaseline() {

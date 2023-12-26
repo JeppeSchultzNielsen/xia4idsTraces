@@ -94,6 +94,7 @@ void xia4idsRunner::read_config(int argc, char **argv){
 
     fscanf(input_file,"Traces  %d\n",    &savetraces);
     fscanf(input_file,"OnlyCoin  %d\n",    &onlyCoin);
+    fscanf(input_file,"outputName  %s\n",    &outputName);
     printf("Successfully read configuration parameters. \n");
 
 

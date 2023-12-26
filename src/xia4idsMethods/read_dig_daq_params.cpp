@@ -47,6 +47,36 @@ void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
             cout << line << endl;
             return;
         }
+        bool usePoly2 = false;
+        bool usePoly3 = false;
+        for(int i = 0; i < splitted.size(); i++){
+            if(splitted[i].find("-use2polycfd=true") != std::string::npos){
+                usePoly2 = true;
+            }
+        }
+        if(usePoly2){
+            double threshold = 0;
+            if(splitted.size() >= 6){
+                if(splitted[4].find("-threshold=") != std::string::npos){
+                    threshold = stod(splitted[4].substr(11));
+                }
+                else{
+                    printf("Need thresh for polyCfd. No threshold \n");
+                    return;
+                }
+                delete dig_daq_params[module][channel];
+                dig_daq_params[module][channel] = new DigDaqParamPoly(module, channel, detType, threshold, order);
+            }
+            else{
+                printf("Need threshold and order parameters for polyCfd. \n");
+                return;
+            }
+        }
+        for(int i = 0; i < splitted.size(); i++){
+            if(splitted[i].find("-use3polycfd=true") != std::string::npos){
+                usePoly3 = true;
+            }
+        }
         bool useCfd = false;
         for(int i = 0; i < splitted.size(); i++){
             if(splitted[i].find("-usecfd=true") != std::string::npos){

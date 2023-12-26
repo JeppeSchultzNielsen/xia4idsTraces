@@ -148,7 +148,7 @@ void xia4idsRunner::event_builder_tree() {
                     }
                     //cout << "type: " << type << " index: " << index << " energy: " << DataArray[k+n].energy << " time: " << DataArray[k+n].time << " cfdtime: " << DataArray[k+n].cfdtime << " evt_start: " << evt_start << endl;
 
-                    if(DataArray[k+n].trace.size() > 0){
+                    /*if(DataArray[k+n].trace.size() > 0){
                         if(dig_daq_params[DataArray[k+n].modnum][DataArray[k+n].chnum]->isReady){
                             Trace *trace = new Trace(DataArray[k+n].trace);
                             trace -> findTraceParams();
@@ -177,16 +177,14 @@ void xia4idsRunner::event_builder_tree() {
                             trace->clear();
                             delete trace;
                         }
-                    }
+                    }*/
                 }
-                //hrt[n] = 1000 + DataArray[k+n].time - evt_start; //just to test. this should be removed later
                 std::vector<unsigned int>().swap(DataArray[k+n].trace);
                 //must release the memory from the trace -- no better way to do this?
             }
         }
 
         // LRT: low resolution time
-
         //TIMESTAMP - always record this
         lrt_run = 1 + DataArray[k].time/run_unit;
 

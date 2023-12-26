@@ -75,7 +75,10 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 
             //ROOT format
             else if (root == 1 || stat == 1) {
-                sprintf(outname, "Run%03d.root", runnumber);
+                strcpy(outname, outputName);
+                sprintf(outname, strcat(outname,"%03d.root"), runnumber);
+                cout << "saving to " << outname << endl;
+
                 rootfile = TFile::Open(outname, "recreate");
                 if (!rootfile) {
                     fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);

@@ -21,12 +21,23 @@ using namespace std;
 
 class PolyCfd {
 public:
-    PolyCfd(){}
-    vector<double> CalculatePoly2(vector<double> &data, const unsigned int &startBin);
+    double threshold;
+    PolyCfd(double threshold){
+        this->threshold = threshold;
+    }
+    vector<double> CalculatePoly2(const vector<double> &data, const unsigned int startBin);
 
     vector<double> CalculatePoly3(vector<double> data, const unsigned int &startBin);
 
+    double CalcPoly2Phase(const std::vector<double> &data, unsigned int traceMax);
+
+    double Get3PolyInterpMax(const std::vector<double> &data, unsigned int traceMax);
+
     double getPol3Zero(vector<double> &coeffs, double low, double high);
+
+    vector<double> getPol3Coeffs(vector<double> &data, unsigned int traceMax);
+
+    double CalcPoly3Phase(const std::vector<double> &data, unsigned int maxPos);
 };
 
 #endif //XIA4IDS_POLYCFD_HH
