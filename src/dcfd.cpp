@@ -36,11 +36,20 @@ pair<int,int> Dcfd::findValidRange(const Trace *trace) {
         }
     }
     //find maxPos left of minPos
-    for(int i = minPos; i > 2*(FL+FG-1)+D; i--){
+    /*for(int i = minPos; i > 2*(FL+FG-1)+D; i--){
         double cfdVal = cfd(trace, i);
         if(cfdVal > 0){
             maxVal = cfdVal;
             maxPos = max(i-2,2*(FL+FG-1)+D);
+            break;
+        }
+    }*/
+    //find maxPos right of minPos
+    for(int i = minPos; i < FL+FG; i--){
+        double cfdVal = cfd(trace, i);
+        if(cfdVal > 0){
+            maxVal = cfdVal;
+            maxPos = max(i+2,2*(FL+FG));
             break;
         }
     }
@@ -48,14 +57,14 @@ pair<int,int> Dcfd::findValidRange(const Trace *trace) {
 }
 
 double Dcfd::getPhase(const Trace *trace) {
-    double prevCfd = 0;
+    double prevCfd = -1;
     double cfdVal = 0;
     int breakPoint = -1;
     //cout << "FL: " << FL << " FG: " << FG << " D: " << D << endl;
     vector<double> cfdVals = {};
     auto fromTo  = findValidRange(trace);
     for(int i = 0; i < trace->data.size(); i++) {
-        if(i < fromTo.first or i > fromTo.second) {
+        if(i < 2*(FL+FG-1)+D) {
             cfdVals.push_back(0);
         }
         else{
@@ -63,15 +72,16 @@ double Dcfd::getPhase(const Trace *trace) {
             cfdVals.push_back(cfdVal);
         }
     }
-    for(int i = 0; i < trace->data.size(); i++){
-        if(i < fromTo.first or i > fromTo.second) {
-            cfdVals.push_back(0);
-            continue;
-        }
+    //cout << endl;
+    for(int i = fromTo.second; i < trace->data.size(); i++){
         cfdVal = cfd(trace, i);
         cfdVals.push_back(cfdVal);
-        if(cfdVal < 0 && prevCfd >= 0){
+        /*cout << cfdVal << endl;
+        cout << i << endl;
+        cout << trace->data.size() << endl;*/
+        if(cfdVal > 0 && prevCfd <= 0){
             breakPoint = i;
+            //cout << "break" << endl;
             break;
         }
         prevCfd = cfdVal;
