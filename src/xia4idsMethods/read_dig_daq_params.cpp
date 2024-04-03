@@ -47,34 +47,10 @@ void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
             cout << line << endl;
             return;
         }
-        bool usePoly2 = false;
-        bool usePoly3 = false;
+        bool usePoly;
         for(int i = 0; i < splitted.size(); i++){
-            if(splitted[i].find("-use2polycfd=true") != std::string::npos){
-                usePoly2 = true;
-            }
-        }
-        if(usePoly2){
-            double threshold = 0;
-            if(splitted.size() >= 6){
-                if(splitted[4].find("-threshold=") != std::string::npos){
-                    threshold = stod(splitted[4].substr(11));
-                }
-                else{
-                    printf("Need thresh for polyCfd. No threshold \n");
-                    return;
-                }
-                delete dig_daq_params[module][channel];
-                dig_daq_params[module][channel] = new DigDaqParamPoly(module, channel, detType, threshold, order);
-            }
-            else{
-                printf("Need threshold and order parameters for polyCfd. \n");
-                return;
-            }
-        }
-        for(int i = 0; i < splitted.size(); i++){
-            if(splitted[i].find("-use3polycfd=true") != std::string::npos){
-                usePoly3 = true;
+            if(splitted[i].find("-usePolyCfd=true") != std::string::npos){
+                usePoly = true;
             }
         }
         bool useCfd = false;
@@ -83,7 +59,30 @@ void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
                 useCfd = true;
             }
         }
-        if(useCfd){
+        if(usePoly){
+            double threshold = 0;
+            if(splitted.size() >= 6){
+                if(splitted[5].find("-w=") != std::string::npos){
+                    threshold = stod(splitted[5].substr(3));
+                }
+                else{
+                    printf("Need thresh for polyCfd. No threshold \n");
+                    return;
+                }
+                delete dig_daq_params[module][channel];
+                dig_daq_params[module][channel] = new DigDaqParam();
+                dig_daq_params[module][channel] -> channel_number = channel;
+                dig_daq_params[module][channel] -> module_number = module;
+                dig_daq_params[module][channel] -> detType = detType;
+                dig_daq_params[module][channel]->initializePolyCfd(threshold);
+                dig_daq_params[module][channel]-> detType = splitted[3];
+            }
+            else{
+                printf("Need threshold and order parameters for polyCfd. \n");
+                return;
+            }
+        }
+        else if(useCfd){
             int FL = 0;
             int FG = 0;
             int D = 0;
@@ -123,6 +122,9 @@ void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
                 delete dig_daq_params[module][channel];
                 dig_daq_params[module][channel] = new DigDaqParam();
                 dig_daq_params[module][channel]->initializeDcfd(FL, FG, D, w);
+                dig_daq_params[module][channel] -> channel_number = channel;
+                dig_daq_params[module][channel] -> module_number = module;
+                dig_daq_params[module][channel] -> detType = detType;
                 dig_daq_params[module][channel]-> detType = splitted[3];
             }
             else{

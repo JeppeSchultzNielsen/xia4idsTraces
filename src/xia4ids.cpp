@@ -74,7 +74,7 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
             }
 
             //ROOT format
-            else if (root == 1 || stat == 1) {
+            else if (root == 1 || stat == 1 || ausa == 1) {
                 strcpy(outname, outputName);
                 sprintf(outname, strcat(outname,"%03d.root"), runnumber);
                 cout << "saving to " << outname << endl;
@@ -84,15 +84,20 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
                     fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
                     exit(0);
                 }
-                define_root();
+                if(root == 1){
+                    define_root();
+                }
+                else if(ausa == 1){
+                    define_ausa();
+                }
             }
         }    
         
 
 			
 		// Cycling over run partitions (a large run will be split into several files of 2.0 Gb each -> one run partition = one file)
-		for (runpart = 0; runpart < 1000; runpart++) { 
-           
+		for (runpart = 0; runpart < 1000; runpart++) {
+
 			start_clock = (double)clock();
                
 			//Ratemeter mode, analysing only the last RATE_EOF_MB megabytes from a file
@@ -213,6 +218,14 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 
 				}
 
+                else if (ausa == 1) {
+                    event_builder_ausa();
+                    totEvt += iEvt;
+                    printf(" %3d events written to %s ", totEvt, outname);
+                    write_time(ldf_pos_index, ldf.GetFileLength());
+
+                }
+
                 for(int v = old_iData; v < iData; v++){
                     //clean traces from memory
                     std::vector<unsigned int>().swap(DataArray[v].trace);
@@ -233,8 +246,8 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
                     break;
 				}
 
-                cout << ldf_pos_index << endl;
-                                      
+                //cout << ldf_pos_index << endl;
+
 				// We also break this loop when reaching the initially read file length. 
 				// This allows for reading out incomplete files or files that are currently being written.
 				if (ldf_pos_index > ldf.GetFileLength()) {
@@ -256,7 +269,7 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
         if (corr == 0) {
             write_stats();
             memset(stats, 0, sizeof(stats));
-			if (root == 1 || stat == 1) {
+			if (root == 1 || stat == 1 || ausa == 1) {
 				rootfile->Write();
 				rootfile->Save();
 				rootfile->Close();

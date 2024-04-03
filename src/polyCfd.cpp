@@ -74,7 +74,7 @@ double PolyCfd::CalcPoly3Phase(const std::vector<double> &data, unsigned int max
 
     vector<double> result;
     for (unsigned int cfdIndex = maxPos; cfdIndex > 0; cfdIndex--) {
-        if (data[cfdIndex - 1] < threshold*traceMax && data[cfdIndex] >= threshold*traceMax) {
+        if (data[cfdIndex - 1] <= threshold*traceMax && (data[cfdIndex] >= threshold*traceMax)) {
             // Fit the rise of the trace to a 2nd order polynomial.
             //cout << "cfdThresh is " << threshold*traceMax << endl;
 
@@ -89,10 +89,20 @@ double PolyCfd::CalcPoly3Phase(const std::vector<double> &data, unsigned int max
             //cout << "zero crossing between" << cfdIndex-1 << " " <<  cfdIndex << endl;
             pol3Phase_ = getPol3Zero(result,cfdIndex-1,cfdIndex);
 
-            //cout << pol3Phase_ << endl;
+            /*cout << pol3Phase_ << endl;
+            cout << endl;*/
             break;
         }
     }
+    /*if(pol3Phase_ == -9999){
+        cout << "what " << endl;
+        cout << maxPos << endl;
+        for (unsigned int cfdIndex = maxPos; cfdIndex > 0; cfdIndex--) {
+            cout << data[cfdIndex] << endl;
+        }
+        cout << "traceMax: " << traceMax << endl;
+        cout << pol3Phase_ << endl;
+    }*/
     return pol3Phase_;
 }
 
@@ -335,21 +345,26 @@ double PolyCfd::Get3PolyInterpMax(const std::vector<double> &data, unsigned int 
 
     // Calculate the maximum of the polynomial.
     double xmax;
-    double node1 =
-            (-2 * p2 + std::sqrt(4 * p2 * p2 - 12 * p3 * p1)) / (6 * p3);
-    double node2 =
-            (-2 * p2 - std::sqrt(4 * p2 * p2 - 12 * p3 * p1)) / (6 * p3);
+    if(p3 == 0){
+        xmax = -p1/(2*p2);
+    }
+    else{
+        double node1 =
+                (-2 * p2 + std::sqrt(4 * p2 * p2 - 12 * p3 * p1)) / (6 * p3);
+        double node2 =
+                (-2 * p2 - std::sqrt(4 * p2 * p2 - 12 * p3 * p1)) / (6 * p3);
 
-    //Check if the curvature at node1 is positive or negative. If it is
-    // negative then we have the maximum. If not then node2 is the
-    // maximum.
-    if ((2 * p2 + 6 * p3 * node1) < 0)
-        xmax = node1;
-    else
-        xmax = node2;
+        //Check if the curvature at node1 is positive or negative. If it is
+        // negative then we have the maximum. If not then node2 is the
+        // maximum.
+        if ((2 * p2 + 6 * p3 * node1) < 0)
+            xmax = node1;
+        else
+            xmax = node2;
 
-    //cout << p0 + p1 * xmax + p2 * xmax * xmax +
-    //        p3 * xmax * xmax * xmax << endl;
+        //cout << p0 + p1 * xmax + p2 * xmax * xmax +
+        //        p3 * xmax * xmax * xmax << endl;
+    }
     return p0 + p1 * xmax + p2 * xmax * xmax +
-                     p3 * xmax * xmax * xmax;
+           p3 * xmax * xmax * xmax;
 }

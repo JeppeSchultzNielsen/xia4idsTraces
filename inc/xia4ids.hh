@@ -35,6 +35,8 @@
 
 #include "globals.h"
 
+#include <ausa/util/DynamicBranchVector.h>
+
 class xia4idsRunner{
 public:
 
@@ -91,7 +93,7 @@ lmc[MAX_NUM_MOD][MAX_NUM_CHN];        // line [mod][chan] -> returns the index o
 
 string typeNames[MAX_NUM_DETTYPES];
 
- int corr, list, gasp, root, stat, rate, rate_root, savetraces, onlyCoin;
+ int corr, list, gasp, root, stat, rate, rate_root, savetraces, onlyCoin, ausa;
  int list_evSize, reference_link;
  int corr_hist[MAX_NUM_DET][RANGE];
  int firstMod[MAX_NUM_DET], secondMod[MAX_NUM_DET], firstCh[MAX_NUM_DET], secondCh[MAX_NUM_DET];
@@ -139,6 +141,13 @@ TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
  char *comment_line;
  char comment_string[MAX_NUM_DET][100];
 
+ //ausa output stuff
+ UInt_t detectorMuls[MAX_NUM_DETTYPES];
+ UInt_t detectorMulsCheck[MAX_NUM_DETTYPES][MAX_NUM_DET];
+ unique_ptr<AUSA::DynamicBranchVector<UInt_t>> DET_E[MAX_NUM_DETTYPES];
+    unique_ptr<AUSA::DynamicBranchVector<UInt_t>> DET_T[MAX_NUM_DETTYPES];
+    unique_ptr<AUSA::DynamicBranchVector<UInt_t>> DET_I[MAX_NUM_DETTYPES];
+
     int xia4ids(int argc, char **argv, int lastRead);
 
     double calibrate(int module, int channel, int energy);
@@ -149,7 +158,11 @@ TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
 
     void define_root();
 
+    void define_ausa();
+
     void event_builder_tree();
+
+    void event_builder_ausa();
 
     void event_builder_list();
 

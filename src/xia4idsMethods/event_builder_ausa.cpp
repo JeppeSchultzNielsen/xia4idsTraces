@@ -1,40 +1,8 @@
-
-/*
-
- HOW does the ROOT event builder work:
-
-
- 1. The detectors are defined in the config file. Numbering starts from 1
- 2. Each distinct type represents a branch in the tree. The index corresponds to the array index (each branch is an array)
- 3. For ADDBACK there can be several detectors of the same type and index.
- They should be calibrated because all go in the same position.
- 4. There will be at least 'fold' detectors in the event. Each individual index-type combination represents a detector.
- 5. Note: in ROOT numbering starts from 0.
-
- There are the following branches in the tree:
-
- E_type1[index] - ADC data
- E_type2[]
- .
- .
- T_type1[index] - (HRT) timestamp difference between each branch and the beginning of the event with offset = 1000
- T_type2[]
- .
- .
- M_type1        - multiplicity for each branch
- M_type2
- .
- .
- MULT     - multiplicity of the event (sum of multiplicity of each branch)
- TIME     - (LRT) timestamp difference between the event and the reference - if defined (proton pulse)
- TIME_RUN - (LRT) timestamp in run_unit units (always)
- */
-
 #include "xia4ids.hh"
 
 
 
-void xia4idsRunner::event_builder_tree() {
+void xia4idsRunner::event_builder_ausa() {
 
 
 
@@ -78,7 +46,6 @@ void xia4idsRunner::event_builder_tree() {
             tref = DataArray[k].time;
             k++;
         }
-
 
         //finding clusters of data
         //m = number of signals inside the cluster
@@ -139,8 +106,8 @@ void xia4idsRunner::event_builder_tree() {
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
             if (   type > 0  /*&& index != reftype*/ )  {
                 hrt[n] = 1000 + DataArray[k+n].time - evt_start ;
-                energy[type][index] += DataArray[k+n].energy;
-                traceIntegral[type][index] += DataArray[k+n].traceIntegral;
+                energy[type][index] = DataArray[k+n].energy;
+                traceIntegral[type][index] = DataArray[k+n].traceIntegral;
                 double phase = 0;
                 if( (onlyCoin && isCoin) or !onlyCoin ){
                     if(savetraces) {
@@ -201,84 +168,33 @@ void xia4idsRunner::event_builder_tree() {
         TIME_REF_branch = lrt_ref;
         TIME_RUN_branch = lrt_run;
 
+
         for(n=0; n<m; n++) {
             type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];
             index = ntmc[type][DataArray[k+n].modnum][DataArray[k+n].chnum];
 
-            E_branch[type][index-1] = energy[type][index];
-            TI_branch[type][index-1] = traceIntegral[type][index];
-            T_branch[type][index-1] = hrt[n];
-            F_branch[type][index-1] = DataArray[k+n].flag;
-            if(savetraces){
-                for(int i = 0; i < trace[type][index].size(); i++){
-                    TRACE_branch[type][index-1][i] = trace[type][index][i];
-                }
-                TRACELEN_branch[type][index-1] = trace[type][index].size();
+            if(detectorMulsCheck[type][index] > 0){
+                //too many hits within time window - assume pileup
+                int flag = 100;
+                continue;
             }
-            if(savetraces){
-                for(int i = 0; i < trace[type][index].size(); i++){
-                    std::vector<unsigned int>().swap(trace[type][index]);
-                    //must release the memory from the trace -- no better way to do this?
-                }
-            }
-
-
-            M_branch[type] = detcount[type];
-            hrt[n] = 0;
-
-            //~}
-
+            detectorMuls[type]++;
+            detectorMulsCheck[type][index]++;
+            DET_E[type] -> add((UInt_t)energy[type][index]);
+            DET_T[type] -> add((UInt_t)4000*hrt[n]);
+            DET_I[type] -> add((UInt_t)index);
         }
         tree->Fill();
 
         MULT_branch = 0;
         TIME_REF_branch = 0.0;
         TIME_RUN_branch = 0.0;
-        memset(E_branch, 0, sizeof(E_branch));
-        memset(TI_branch, 0, sizeof(TI_branch));
-        memset(T_branch, 0, sizeof(T_branch));
-        memset(M_branch, 0, sizeof(M_branch));
-        memset(F_branch, 0, sizeof(F_branch));
-        if(savetraces){
-            memset(TRACE_branch, 0, sizeof(TRACE_branch));
-            memset(TRACELEN_branch, 0, sizeof(TRACELEN_branch));
-            memset(trace, 0, sizeof(trace));
+        memset(detectorMuls, 0, sizeof(detectorMuls));
+        memset(detectorMulsCheck, 0, sizeof(detectorMulsCheck));
+        for(int i = 0; i < dettypes; i++){
+            AUSA::clear(*DET_E[i], *DET_T[i],*DET_I[i]);
         }
-
         iEvt++;
         k+=m;
     }
 } //end of event_builder_tree.h
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

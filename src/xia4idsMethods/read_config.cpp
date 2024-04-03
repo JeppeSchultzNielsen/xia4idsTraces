@@ -82,8 +82,9 @@ void xia4idsRunner::read_config(int argc, char **argv){
     else if ( strncmp(format_string, "list", 4) == 0 )  { list = 1; printf("Running in LIST mode\n"); }
     else if ( strncmp(format_string, "gasp", 4) == 0 )  { gasp = 1; printf("Running in GASP mode\n"); }
     else if ( strncmp(format_string, "root", 4) == 0 )  { root = 1; printf("Running in ROOT mode\n"); }
+    else if ( strncmp(format_string, "ausa", 4) == 0 )  { ausa = 1; printf("Running in ausa mode\n"); }
     else {
-        printf("ERROR: Cannot read <Format> from '%s'. Format {gasp, list, stat, root, rate}\n",  argv[1]);
+        printf("ERROR: Cannot read <Format> from '%s'. Format {gasp, list, stat, root, rate, ausa}\n",  argv[1]);
         exit(0);
     }
 
@@ -191,7 +192,6 @@ void xia4idsRunner::read_config(int argc, char **argv){
             printf("       ----> Coding Line %d: Dettype = %d\n", i, config_coding[i][1]);
             exit(0);
         }
-
         if ( i>0 &&
              ( (config_coding[i-1][1] > config_coding[i][1]) ||
                (config_coding[i][1] - config_coding[i-1][1]) > 1 )   ) {
@@ -269,7 +269,7 @@ void xia4idsRunner::read_config(int argc, char **argv){
 
     }
 
-    if (dettypes == 0 || modules == 0 || dettypes > MAX_NUM_MOD || modules > MAX_NUM_MOD) {
+    if (dettypes == 0 || modules == 0 || dettypes > MAX_NUM_DETTYPES || modules > MAX_NUM_MOD) {
         printf("ERROR: In configuration file '%s'. Dettypes=%d, Modules=%d\n", argv[1], dettypes, modules);
 //exit(0);
     }

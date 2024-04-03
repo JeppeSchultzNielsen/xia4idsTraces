@@ -140,6 +140,10 @@ pair <double,double> DigDaqParamINDiE::calculatePhase(const Trace* trace){
     if(useCfd){
         return make_pair(dcfd->getPhase(trace), trace->qdc);
     }
+    if(usePolyCfd){
+        //cout << channel_number <<  "calculating phase " << polyCfd->CalcPoly3Phase(trace->data,trace->maxPos) << " with poly threshold " << polyCfd->threshold << endl;
+        return make_pair(polyCfd->CalcPoly3Phase(trace->data,trace->maxPos), trace->qdc);
+    }
     gsl_multifit_function_fdf f;
     int info;
     const size_t n = trace->data.size();
