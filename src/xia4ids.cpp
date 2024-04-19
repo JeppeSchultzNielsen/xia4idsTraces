@@ -11,7 +11,7 @@ https://github.com/rlica/xia4ids
 
 #include "xia4ids.hh"
 
-int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
+int Xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 {
 
     printf("\n\t\t----------------------------------");
@@ -21,7 +21,7 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
     printf("\n\t\t----------------------------------");
     printf("\n\n");
 
-    read_config(argc, argv);
+    read_config(argc, argv, true);
 
     read_cal(argc, argv);
     read_dig_daq_params(argc, argv);
@@ -158,7 +158,7 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
 				progress = float(ldf_pos_index) / float(ldf.GetFileLength());
 				printProgress(progress);
 									
-				// read_ldf() will read a fixed number of spills at once from the binary file
+				// read_ldf() will readfa fixed number of spills at once from the binary file
 				// if ratemode is enabled, read_ldf() will process only the last part of the file
                 old_iData = iData;
 				raw_list_size  += read_ldf(ldf, data, ldf_pos_index);
@@ -289,3 +289,268 @@ int xia4idsRunner::xia4ids(int argc, char **argv, int lastRead)
     exit(0);
 
 } //end of main
+
+Xia4idsRunner::Xia4idsRunner(int argc, char **argv){
+    //initialize a xia4idsRunner object that is ready to read spills
+    read_config(argc, argv, false);
+    read_cal(argc, argv);
+    read_dig_daq_params(argc, argv);
+
+    //Allocating memory
+    DataArray = (struct dataStruct *)calloc(memoryuse, sizeof(struct dataStruct));
+    TempArray = (struct dataStruct *)calloc(memoryuse, sizeof(struct dataStruct));
+
+    memset(DataArray,0,memoryuse);
+    memset(TempArray,0,memoryuse); //Used only when sorting
+
+    if(root == 1){
+        define_root();
+    }
+    else if(ausa == 1){
+        define_ausa();
+    }
+}
+
+void Xia4idsRunner::prepareFile(int runNumber, int fileNumber, BufferInfo bufferInfo, string fileDestinationStem){
+    // Normal mode analysing the full file
+    if (rate == 0) {
+        if (fileNumber == 0)
+            sprintf(filename, "%s%03d.ldf", runname, runNumber);
+        else
+            sprintf(filename, "%s%03d-%d.ldf", runname, runNumber, fileNumber);
+        fp_in = fopen(filename, "rb");
+        if (!fp_in) {
+            printf("File parsing completed: %s does not exist\n", filename);
+        }
+    }
+
+    if (root == 1 || stat == 1 || ausa == 1) {
+        string outputName = fileDestinationStem + Form("%03d_%03d_%d.root", runNumber, fileNumber, bufferInfo.spillEnd);
+
+        rootfile = TFile::Open(outputName.c_str(), "recreate");
+        if (!rootfile) {
+            fprintf(stderr, "ERROR: Unable to create %s - %m\n", outname);
+            exit(0);
+        }
+        if(root == 1){
+            define_root();
+        }
+        else if(ausa == 1){
+            define_ausa();
+        }
+    }
+}
+
+int Xia4idsRunner::readSpill(int runNumber, int fileNumber, BufferInfo bufferInfo, string fileDestinationStem) {
+    //Initializing the binary file object
+    LDF_file ldf(filename);
+    ldf_pos_index_for_findSpills = 0;
+
+    // Set file length
+    ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
+    ldf.GetFile().seekg(0, ldf.GetFile().end);
+    ldf.SetLength(ldf.GetFile().tellg());
+    ldf.GetFile().seekg(0, ldf.GetFile().beg);
+    ldf.GetFile().close();
+    // iData will be the last data index.
+    iData=0, iEvt=0;
+
+    // Initializing the data array to zero
+    memset(DataArray,0,memoryuse);
+    memset(TempArray,0,memoryuse); //Used only when sorting
+
+    // read_ldf() will read a fixed number of spills at once from the binary file
+    // if ratemode is enabled, read_ldf() will process only the last part of the file
+    old_iData = iData;
+    raw_list_size  += read_ldf_spill(ldf, dataForFindSpills, ldf_pos_index_for_findSpills,bufferInfo,1);
+    good_list_size += iData;
+
+    // Sorting the data chronologically.
+    MergeSort(DataArray, TempArray, 0, iData);
+
+    // Extract first and last time stamps
+    if (DataArray[iData-1].time > 0)
+        last_ts = DataArray[iData-1].time;
+
+    // Writing statistics and skipping the event builder, will sort everything twice as fast
+
+    // Looking for correlations
+    if (corr > 0)
+        correlations();
+
+        // Writing to GASPWare
+    else if (gasp == 1) {
+        event_builder();
+        write_gasp();
+        totEvt += iEvt;
+    }
+
+        // Writing event lists
+    else if (list == 1) {
+        event_builder_list();
+        totEvt += iEvt;
+    }
+
+        // Writing to a ROOT Tree
+    else if (root == 1) {
+        event_builder_tree();
+        totEvt += iEvt;
+    }
+
+    else if (ausa == 1) {
+        event_builder_ausa();
+        totEvt += iEvt;
+    }
+
+    for(int v = old_iData; v < iData; v++){
+        //clean traces from memory
+        std::vector<unsigned int>().swap(DataArray[v].trace);
+        std::vector<unsigned int>().swap(TempArray[v].trace);
+    }
+
+    if (corr == 0) {
+        memset(stats, 0, sizeof(stats));
+        if (root == 1 || stat == 1 || ausa == 1) {
+            rootfile->Write();
+            rootfile->Save();
+            rootfile->Close();
+        }
+    }
+    ldf.GetFile().close();
+    fclose(fp_in);
+    //fclose(fp_out);
+    return ldf_pos_index_for_findSpills;
+}
+
+pair<vector<BufferInfo>,int> Xia4idsRunner::findSpills(int runNumber, int fileNumber, BufferInfo bufferInfo, int nThreads, int spillsPerRead) {
+    //find the starts of the next nThread spills in the specific file
+
+    if (rate == 0) {
+        if (fileNumber == 0)
+            sprintf(filename, "%s%03d.ldf", runname, runNumber);
+        else
+            sprintf(filename, "%s%03d-%d.ldf", runname, runNumber, fileNumber);
+        fp_in = fopen(filename, "rb");
+        if (!fp_in) {
+            printf("File parsing completed: %s does not exist\n", filename);
+        }
+    }
+
+    LDF_file ldf(filename);
+    int pos_index = bufferInfo.spillEnd; // position index in the file
+
+    // Set file length
+    ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
+    ldf.GetFile().seekg(0, ldf.GetFile().end);
+    ldf.SetLength(ldf.GetFile().tellg());
+    ldf.GetFile().seekg(0, ldf.GetFile().beg);
+    ldf.GetFile().close();
+
+    cout << "finding spills starting from " << pos_index << " out of " << ldf.GetFileLength() << " in " << filename << endl;
+
+    ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
+    // Get length and rewind to read from beg
+    ldf.GetFile().seekg(0, ldf.GetFile().beg);
+    // Start reading ldf DATA buffers
+    if (pos_index == 0)
+    {
+        ldf.GetFile().seekg(65552, ldf.GetFile().beg); //10010 (hex) offset of DATA buffer type
+    }
+    else
+    {
+        ldf.GetFile().seekg(pos_index, ldf.GetFile().beg); // resume reading the following spills
+    }
+
+    bool debug_mode = false; /// Set to true if the user wishes to display debug information.
+
+    // variables for reading data buffer
+    bool full_spill;
+    bool bad_spill;
+    unsigned int nBytes;
+    std::stringstream status;
+
+    // variable that stores data spill
+    unsigned int* data_ = new unsigned int[memoryuse];
+
+    vector<BufferInfo> bufferInfos = {};
+    int retvalue = 0;
+    while(bufferInfos.size() < nThreads){
+        int nSpills = 0;
+        BufferInfo bufferInfo;
+        bufferInfo.spillStart = ldf.GetFile().tellg();
+        while(nSpills < spillsPerRead) {
+            if (!dataForFindSpills.Read(&ldf.GetFile(), (char *) data_, nBytes, 0, full_spill, bad_spill,
+                                        debug_mode)) {     // Reading a spill from the binary file
+                retvalue = dataForFindSpills.GetRetval();
+                if (dataForFindSpills.GetRetval() == 1) {
+                    if (debug_mode) {
+                        std::cout << "debug: Encountered single EOF buffer (end of run).\n";
+                    }
+                } else if (dataForFindSpills.GetRetval() == 2) {
+                    if (debug_mode) {
+                        std::cout << "debug: Encountered double EOF buffer (end of file).\n";
+                    }
+                    break;
+                } else if (dataForFindSpills.GetRetval() == 3) {
+                    if (debug_mode) {
+                        std::cout << "debug: Encountered unknown ldf buffer type.\n";
+                    }
+                } else if (dataForFindSpills.GetRetval() == 4) {
+                    if (debug_mode) {
+                        std::cout << "debug: Encountered invalid spill chunk.\n";
+                    }
+                } else if (dataForFindSpills.GetRetval() == 5) {
+                    if (debug_mode) {
+                        std::cout << "debug: Received bad spill footer size.\n";
+                    }
+                } else if (dataForFindSpills.GetRetval() == 6) {
+                    if (debug_mode) {
+                        std::cout << "debug: Failed to read buffer from input file.\n";
+                    }
+                    break;
+                }
+                continue;
+            }
+
+            if (debug_mode) {
+                status << "\033[0;32m" << " [READ] " << "\033[0m" << nBytes / 4 << " words ("
+                       << 100 * ldf.GetFile().tellg() / ldf.GetFileLength() << "%), ";
+                status << "GOOD = " << dataForFindSpills.GetNumChunks() << ", LOST = "
+                       << dataForFindSpills.GetNumMissing();
+                std::cout << "\r" << status.str();
+            }
+
+
+            if (full_spill) {
+                if (debug_mode) {
+                    std::cout << std::endl << "full spill is true!" << std::endl;
+                    std::cout << "debug: Retrieved spill of " << nBytes << " bytes (" << nBytes / 4 << " words)\n";
+                    std::cout << "debug: Read up to word number " << ldf.GetFile().tellg() / 4 << " in input file\n";
+                }
+                if (!bad_spill) {
+                } else {
+                    std::cout << " WARNING: Spill has been flagged as corrupt, skipping (at word "
+                              << ldf.GetFile().tellg() / 4
+                              << " in file)!\n";
+                }
+
+            } else if (debug_mode) {
+                std::cout << std::endl << "Not full spill!" << std::endl;
+                std::cout << "debug: Retrieved spill fragment of " << nBytes << " bytes (" << nBytes / 4 << " words)\n";
+                std::cout << "debug: Read up to word number " << ldf.GetFile().tellg() / 4 << " in input file\n";
+                std::cout << std::endl << std::endl;
+            }
+            nSpills++;
+        }
+        bufferInfo.spillEnd = ldf.GetFile().tellg();
+        bufferInfos.push_back(bufferInfo);
+        if(retvalue == 2 or retvalue == 6){
+            break;
+        }
+    } // Finished reading 'max_num_spill' spills
+    ldf.GetFile().close();
+    fclose(fp_in);
+    //fclose(fp_out);
+    delete[] data_;
+    return make_pair(bufferInfos,retvalue);
+}

@@ -13,7 +13,7 @@ s = ------------- = ---------------------------
 #include "xia4ids.hh"
 
 
-void xia4idsRunner::printProgress(double percentage) {
+void Xia4idsRunner::printProgress(double percentage) {
     int val = (int) (percentage * 100);
     int lpad = (int) (percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
@@ -21,7 +21,7 @@ void xia4idsRunner::printProgress(double percentage) {
     // fflush(stdout);
 }
 
-void xia4idsRunner::write_time(int current_block, int full_size) {
+void Xia4idsRunner::write_time(int current_block, int full_size) {
 
 
     double elapsed=0, remaining=0; //in seconds

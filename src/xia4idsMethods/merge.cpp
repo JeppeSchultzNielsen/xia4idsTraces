@@ -5,7 +5,7 @@
 
 #include "xia4ids.hh"
 
-void xia4idsRunner::Merge(struct dataStruct *array, struct dataStruct *tempArray, int left, int mid, int right)
+void Xia4idsRunner::Merge(struct dataStruct *array, struct dataStruct *tempArray, int left, int mid, int right)
 {
     /*We need a Temporary array to store the new sorted part*/
 
@@ -33,7 +33,7 @@ void xia4idsRunner::Merge(struct dataStruct *array, struct dataStruct *tempArray
 }
 
 
-void xia4idsRunner::MergeSort(struct dataStruct *array, struct dataStruct *tempArray, int left, int right)
+void Xia4idsRunner::MergeSort(struct dataStruct *array, struct dataStruct *tempArray, int left, int right)
 {
     int mid = (left+right)/2;
     /* We have to sort only when left<right because when left=right it is anyhow sorted*/

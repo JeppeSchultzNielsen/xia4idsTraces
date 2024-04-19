@@ -4,7 +4,7 @@
 
 #include "xia4ids.hh"
 
-void xia4idsRunner::read_config(int argc, char **argv){
+void Xia4idsRunner::read_config(int argc, char **argv, bool manualRun){
 
     if (argc < 2) {
         printf("Config file required as argument: ...$n4i [config_file_name] \n");
@@ -20,7 +20,6 @@ void xia4idsRunner::read_config(int argc, char **argv){
     if(!fscanf(input_file,"pair-tac  %d\n",    &pair_tac)) { printf("ERROR: Cannot read <pair_tac> from '%s'\n", argv[1]); exit(0);}
     if(!fscanf(input_file,"reftype   %d\n",     &reftype)) { printf("ERROR: Cannot read <reftype> from '%s'\n",  argv[1]); exit(0);}
     if(!fscanf(input_file,"flagtype  %d\n",    &flagtype)) { printf("ERROR: Cannot read <flagtype> from '%s'\n", argv[1]); exit(0);}
-
 
 //Reading ref_unit
     if(!fscanf(input_file,"ref_unit   %llu %s\n",  &ref_unit, ref_string)) {
@@ -305,14 +304,15 @@ void xia4idsRunner::read_config(int argc, char **argv){
             else reference_link = link_type[i];
         }
 
-
-    if (rate == 0) {                       //Normal mode
-        printf("Start with run number:\t");
+    if(manualRun){
+        if (rate == 0) {                       //Normal mode
+            printf("Start with run number:\t");
 // scanf("%d", &runstart);
-        std::cin >> runstart;
-        printf("Stop at run number:\t");
+            std::cin >> runstart;
+            printf("Stop at run number:\t");
 // scanf("%d", &runstop);
-        std::cin >> runstop;
+            std::cin >> runstop;
+        }
     }
 
 //else {                                //Ratemeter mode

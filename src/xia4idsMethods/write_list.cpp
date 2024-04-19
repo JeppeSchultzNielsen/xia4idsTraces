@@ -1,6 +1,6 @@
 #include "xia4ids.hh"
 
-void xia4idsRunner::write_list() {
+void Xia4idsRunner::write_list() {
 
 
 

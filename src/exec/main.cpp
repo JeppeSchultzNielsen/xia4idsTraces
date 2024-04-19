@@ -5,6 +5,6 @@
 #include "main.h"
 
 int main(int argc, char **argv){
-    auto x4ir = new xia4idsRunner;
+    auto x4ir = new Xia4idsRunner;
     x4ir -> xia4ids(argc, argv, 0);
 }

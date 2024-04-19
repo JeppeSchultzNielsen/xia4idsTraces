@@ -1,6 +1,6 @@
 #include "xia4ids.hh"
 
-void xia4idsRunner::define_root() {
+void Xia4idsRunner::define_root() {
 
 
 
@@ -39,13 +39,13 @@ void xia4idsRunner::define_root() {
 
     //define histograms for each input defined in the config file
     //they are incremented in read_ldf.hh
-
+/*
     hStats = new TH1F("hStats", "Statistics", detnum, 0, detnum);
     for (i = 0; i < detnum; i++)
         h[i] = new TH1F(Form("h%d_%s", i, comment_string[i]),
                         Form("%s_Singles", comment_string[i]),
                         65535, 1, 65536);
-
+*/
 
 
 

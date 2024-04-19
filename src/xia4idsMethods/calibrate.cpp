@@ -1,6 +1,6 @@
 #include "xia4ids.hh"
 
-double xia4idsRunner::calibrate(int module, int channel, int energy) {
+double Xia4idsRunner::calibrate(int module, int channel, int energy) {
 
     // If no calibration for channel, return ADC energy
     if (have_cal == 0 || calib[module][channel][0] == 0) return energy;

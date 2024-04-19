@@ -32,7 +32,7 @@
 
 #include "xia4ids.hh"
 
-void xia4idsRunner::event_builder_list() {
+void Xia4idsRunner::event_builder_list() {
 
 
     //Here we define the size of the event, not including the zero separator

@@ -1,5 +1,5 @@
 #include "xia4ids.hh"
-void xia4idsRunner::write_stats() {
+void Xia4idsRunner::write_stats() {
 
 // printing Stats for each Run
 

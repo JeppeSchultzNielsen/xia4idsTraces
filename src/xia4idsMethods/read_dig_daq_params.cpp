@@ -1,6 +1,6 @@
 #include "xia4ids.hh"
 
-void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
+void Xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
 
     int status, module, channel, count=0;
     double cal[MAX_CAL];
@@ -47,7 +47,7 @@ void xia4idsRunner::read_dig_daq_params(int argc, char **argv) {
             cout << line << endl;
             return;
         }
-        bool usePoly;
+        bool usePoly = false;
         for(int i = 0; i < splitted.size(); i++){
             if(splitted[i].find("-usePolyCfd=true") != std::string::npos){
                 usePoly = true;

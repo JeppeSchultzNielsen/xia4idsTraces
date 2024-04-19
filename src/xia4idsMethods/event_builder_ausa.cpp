@@ -2,7 +2,7 @@
 
 
 
-void xia4idsRunner::event_builder_ausa() {
+void Xia4idsRunner::event_builder_ausa() {
 
 
 
@@ -167,7 +167,6 @@ void xia4idsRunner::event_builder_ausa() {
         MULT_branch = mult;
         TIME_REF_branch = lrt_ref;
         TIME_RUN_branch = lrt_run;
-
 
         for(n=0; n<m; n++) {
             type =  tmc      [DataArray[k+n].modnum][DataArray[k+n].chnum];

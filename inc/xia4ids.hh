@@ -34,10 +34,10 @@
 #include "dig_daq_param.hh"
 
 #include "globals.h"
-
+#include "BufferInfo.h"
 #include <ausa/util/DynamicBranchVector.h>
 
-class xia4idsRunner{
+class Xia4idsRunner{
 public:
 
 //  GLOBAL VARIABLES
@@ -47,12 +47,14 @@ public:
  int   tot_sig_read;   //total number of signals read
  int run_good_chunks, run_missing_chunks; // For checking run integrity
  int raw_list_size, good_list_size; // For counting all the raw/processed signals
+    DATA_buffer dataForFindSpills;
+    int ldf_pos_index_for_findSpills;
 
 
  FILE *fp_in;
  FILE *fp_out;
  char filename[1000];
- char outname[1000];
+ char outname[10000];
  char runname[1000];
  char outputName[1000];
  char ref_string[10], run_string[10], format_string[100], rate_root_string[1];
@@ -148,6 +150,38 @@ TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
     unique_ptr<AUSA::DynamicBranchVector<UInt_t>> DET_T[MAX_NUM_DETTYPES];
     unique_ptr<AUSA::DynamicBranchVector<UInt_t>> DET_I[MAX_NUM_DETTYPES];
 
+    // variables for ldf_read_spill
+    // variables for reading dir buffer
+    char* x = new char[2];
+    unsigned int check_bufftype_dir, check_buffsize_dir, unknown[2], run_num;
+
+    // variables for reading head buffer
+    unsigned int check_bufftype_head, check_buffsize_head, run_num_2;
+    char facility[9];
+    char format[9];
+    char type[17];
+    char date[17];
+    char run_title[81];
+
+    // variables for reading data buffer
+    bool full_spill;
+    bool bad_spill;
+    unsigned int nBytes;
+    std::stringstream status;
+
+    // variable that stores data spill
+    unsigned int* data_ = new unsigned int[memoryuse];
+
+    Xia4idsRunner(){};
+
+    Xia4idsRunner(int argc, char **argv);
+
+    int readSpill(int runNumber, int fileNumber, BufferInfo bufferInfo, string fileDestinationStem);
+
+    pair<vector<BufferInfo>,int> findSpills(int runNumber, int fileNumber, BufferInfo bufferInfo, int nThreads, int spillsPerRead);
+
+    void prepareFile(int runNumber, int fileNumber, BufferInfo bufferInfo, string fileDestinationStem);
+
     int xia4ids(int argc, char **argv, int lastRead);
 
     double calibrate(int module, int channel, int energy);
@@ -172,11 +206,13 @@ TRACELEN_branch[MAX_NUM_DETTYPES][MAX_NUM_DET],
 
     void read_cal(int argc, char **argv);
 
-    void read_config(int argc, char **argv);
+    void read_config(int argc, char **argv, bool manualRun);
 
     void read_dig_daq_params(int argc, char **argv);
 
-    int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index);
+    int read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index, int max_spills = -1);
+
+    int read_ldf_spill(LDF_file& ldf, DATA_buffer& data, int& pos_index, BufferInfo bufferInfo, int max_spills = -1);
 
     void write_correlations();
 

@@ -34,7 +34,7 @@
 
 
 
-void xia4idsRunner::event_builder_tree() {
+void Xia4idsRunner::event_builder_tree() {
 
 
 

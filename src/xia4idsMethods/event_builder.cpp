@@ -1,7 +1,7 @@
 #include "xia4ids.hh"
 
 
-void xia4idsRunner::event_builder() {
+void Xia4idsRunner::event_builder() {
 
 
     k=0;

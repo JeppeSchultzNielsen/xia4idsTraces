@@ -2,7 +2,7 @@
 
 #include "xia4ids.hh"
 
-void xia4idsRunner::write_gasp() {
+void Xia4idsRunner::write_gasp() {
 
 
 

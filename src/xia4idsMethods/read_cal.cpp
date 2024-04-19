@@ -14,7 +14,7 @@
  */
 #include "xia4ids.hh"
 
-void xia4idsRunner::read_cal(int argc, char **argv) {
+void Xia4idsRunner::read_cal(int argc, char **argv) {
 
     int status, module, channel, count=0;
     double cal[MAX_CAL];

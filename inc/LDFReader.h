@@ -83,6 +83,7 @@ public:
     unsigned int GetBuffHead() { return buff_head; }
     unsigned int GetBuffSize() { return buff_size; }
     unsigned int GetBuffPos() { return buff_pos; }
+    unsigned int GetBcount() { return bcount; }
     unsigned int* GetCurrBuffer() { return curr_buffer; }
     unsigned int* GetNextBuffer() { return next_buffer; }
     /// Return the number of good spill chunks which were read.
@@ -95,6 +96,15 @@ public:
     void IncrementGoodChunks() { good_chunks++; }
     void AddBuffPos(int buff_pos_steps) { buff_pos += buff_pos_steps; }
     void AddMissingChunks(unsigned int new_missing_chunks) { missing_chunks += new_missing_chunks; }
+
+    void SetBcount(unsigned int new_bcount) { bcount = new_bcount; }
+    void SetBuffPos(unsigned int new_buff_pos) { buff_pos = new_buff_pos; }
+    void SetCurrBuffer(unsigned int* new_curr_buffer) { curr_buffer = new_curr_buffer; }
+    void SetNextBuffer(unsigned int* new_next_buffer) { next_buffer = new_next_buffer; }
+    void SetBuffHead(unsigned int new_buff_head) { buff_head = new_buff_head; }
+    void SetBuffSize(unsigned int new_buff_size) { buff_size = new_buff_size; }
+    void SetGoodChunks(unsigned int new_good_chunks) { good_chunks = new_good_chunks; }
+    void SetMissingChunks(unsigned int new_missing_chunks) { missing_chunks = new_missing_chunks; }
     virtual void Reset();/// Set initial values.
 };
 

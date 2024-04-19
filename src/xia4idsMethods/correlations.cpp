@@ -1,6 +1,6 @@
 #include "xia4ids.hh"
 
-void xia4idsRunner::correlations() {
+void Xia4idsRunner::correlations() {
 
 
     for (j=0; j<corr; j++) {
