@@ -4,7 +4,7 @@
 # In CMake, project versioning has the following syntax:
 #     MAJOR[.MINOR[.PATCH[.TWEAK]]]
 cmake_minimum_required(VERSION 3.15)
-project(xia4ids)
+project(xia4idsTraces)
 file(READ ${CMAKE_SOURCE_DIR}/VERSION CMAKE_PROJECT_VERSION) # set XIA4IDS project version
 
 # Procure required and optional packages

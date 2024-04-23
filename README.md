@@ -1,18 +1,18 @@
-# xia4ids
+# xia4idsTraces
 
-XIA DGF Pixie-16 .ldf data file converter into ROOT and GASPware format for IDS (The IDS Collaboration https://isolde-ids.web.cern.ch/ )
+xia4idsTraces is a modification on the xia4ids code, which in turn is based on PAASS. It allows reading traces from binary .ldf files and performing various timing algorithms for neutron TOF with INDiE. It also allows an output format mimicking the output format of the UCESB unpacker. It also allows reading .ldf files piecewise using multithreading for use in the go4pixie project. 
 
-Initial version of the code: https://github.com/phandangkhai/pixie16ids.
+The structure of the project is based on the modifications made by Erik Asbjørn Mikkelsen Jensen in the repo xia4ids.
 
-Parts of this code were modified from Pixie Acquisition and Analysis Software Suite (PAASS) https://github.com/pixie16/paass, which is licensed under the GNU GPL v. 3.0. In particular, some classes are modified and adapted from PAASS of branch 'dev' at https://github.com/pixie16/paass/tree/dev/Analysis/ScanLibraries.
-
-## Build steps for xia4ids library 
+## Build steps for xia4idsTraces
 
 **This section is to be merged into "Installation and running" when/if the modifications here are accepted into the main xia4ids repo.**
 
 Prerequisites:
 * CMake version >= 3.15
 * ROOT version >= 6.xx
+* AUSAlib
+* GSL
 
 Remove `xia4ids` from your path, if you have already followed the "old school" installation instructions.
 
