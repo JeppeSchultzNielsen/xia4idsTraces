@@ -344,7 +344,7 @@ void Xia4idsRunner::prepareFile(int runNumber, int fileNumber, BufferInfo buffer
 int Xia4idsRunner::readSpill(int runNumber, int fileNumber, BufferInfo bufferInfo, string fileDestinationStem) {
     //Initializing the binary file object
     LDF_file ldf(filename);
-    ldf_pos_index_for_findSpills = 0;
+    //ldf_pos_index_for_findSpills = 0;
 
     // Set file length
     ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);

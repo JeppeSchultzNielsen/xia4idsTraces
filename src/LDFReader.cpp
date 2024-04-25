@@ -118,6 +118,7 @@ bool DATA_buffer::Read(std::ifstream* file_, char* data_, unsigned int& nBytes,
     nBytes = 0; // Set the number of output bytes to zero
 
     while (true) {
+        //std::cout << file_->tellg() << std::endl;
         if (!read_next_buffer(file_)) {
             if (debug_mode) {
                 std::cout << "debug: failed to read from input data file\n";

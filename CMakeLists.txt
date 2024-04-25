@@ -20,8 +20,8 @@ include_directories(${CMAKE_SOURCE_DIR}/inc)
 file(GLOB SOURCES "src/*.cpp" "src/*.c" "src/xia4idsMethods/*.cpp")
 file(GLOB HEADERS "inc/*.h" "inc/*.hh")
 
-add_executable(main ${SOURCES} ${HEADERS} "src/exec/main.cpp")
-target_link_libraries(main PUBLIC ROOT::Tree ROOT::Hist ROOT::Gpad GSL::gsl)
+add_executable(xia4idsTraces ${SOURCES} ${HEADERS} "src/exec/main.cpp")
+target_link_libraries(xia4idsTraces PUBLIC ROOT::Tree ROOT::Hist ROOT::Gpad GSL::gsl)
 
 add_executable(go4pixie ${SOURCES} ${HEADERS} "src/exec/go4pixie.cpp")
 target_link_libraries(go4pixie PUBLIC ROOT::Tree ROOT::Hist ROOT::Gpad GSL::gsl)

@@ -190,7 +190,7 @@ void Xia4idsRunner::event_builder_ausa() {
         TIME_RUN_branch = 0.0;
         memset(detectorMuls, 0, sizeof(detectorMuls));
         memset(detectorMulsCheck, 0, sizeof(detectorMulsCheck));
-        for(int i = 0; i < dettypes; i++){
+        for(int i = 1; i < dettypes+1; i++){
             AUSA::clear(*DET_E[i], *DET_T[i],*DET_I[i]);
         }
         iEvt++;

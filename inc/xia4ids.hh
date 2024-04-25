@@ -48,7 +48,7 @@ public:
  int run_good_chunks, run_missing_chunks; // For checking run integrity
  int raw_list_size, good_list_size; // For counting all the raw/processed signals
     DATA_buffer dataForFindSpills;
-    int ldf_pos_index_for_findSpills;
+    int ldf_pos_index_for_findSpills = 0;
 
 
  FILE *fp_in;

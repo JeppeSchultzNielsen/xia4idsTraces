@@ -37,7 +37,6 @@ Go4PixieUnpacker::Go4PixieUnpacker(int argc, char **argv) {
 
 void Go4PixieUnpacker::multiReadSpills(vector<BufferInfo> bufferInfos, int runNumber, int fileNumber){
     int runningThreads = 0;
-
     for(int i = 0; i < bufferInfos.size(); i++){
         runners[i]-> prepareFile(runNumber, fileNumber, bufferInfos[i], fileDestinationStem);
     }
@@ -75,7 +74,12 @@ void Go4PixieUnpacker::run(){
             cout << endl;
         }*/
 
-        multiReadSpills(bufferInfos, currentRunNumber, currentFileNumber);
+        if(bufferInfos.size() == 1 && bufferInfos[0].spillEnd == -1){
+
+        }else {
+            multiReadSpills(bufferInfos, currentRunNumber, currentFileNumber);
+            sleepCount = 0; //reset sleep count
+        }
 
         if(retval < 10 && retval > 0){
             if(retval == 1 || retval == 2){
@@ -96,6 +100,10 @@ void Go4PixieUnpacker::run(){
                     delete spillFinder;
                     bufferInfoStart.spillEnd = 0;
                     spillFinder = new Xia4idsRunner(argc, argv);
+                    for(int i = 0; i < runners.size(); i++){
+                        runners[i] -> ldf_pos_index_for_findSpills = 0;
+                        runners[i] -> dataForFindSpills.Reset();
+                    }
                     continue;
                 }
             }
@@ -106,6 +114,12 @@ void Go4PixieUnpacker::run(){
                     if(newFile.first == -1){
                         cout << "No new file found, wait another 5 tries" << endl;
                         sleepCount = 0;
+                        if(!bufferInfos.empty()){
+                            //last spill not read correctly. start from there
+                            if(bufferInfos[bufferInfos.size()-1].spillStart != -1) {
+                                bufferInfoStart.spillEnd = bufferInfos[bufferInfos.size() - 1].spillStart;
+                            }
+                        }
                         continue;
                     }
                     else{
@@ -115,26 +129,29 @@ void Go4PixieUnpacker::run(){
                         delete spillFinder;
                         bufferInfoStart.spillEnd = 0;
                         spillFinder = new Xia4idsRunner(argc, argv);
+                        for(int i = 0; i < runners.size(); i++){
+                            runners[i] -> ldf_pos_index_for_findSpills = 0;
+                            runners[i] -> dataForFindSpills.Reset();
+                        }
+                        continue;
                     }
                     break;
                 }
-                //not eof or end of run, but no more spills. Wait for 5s and try again
-                cout << "No more spills found, waiting for 1s" << endl;
+                //not eof or end of run, but no more completed spills. Wait for 1s and try again
+                cout << "No more spills found, waiting for 5s" << endl;
                 sleepCount++;
-                this_thread::sleep_for(chrono::seconds(1));
-                if(!bufferInfos.size() == 0){
-                    bufferInfoStart = bufferInfos[bufferInfos.size()-1];
+                this_thread::sleep_for(chrono::seconds(5));
+                if(!bufferInfos.empty()){
+                    //last spill not read correctly. start from there
+                    bufferInfoStart.spillEnd = bufferInfos[bufferInfos.size()-1].spillStart;
                 }
                 continue;
             }
             break;
         }
-
-        if(bufferInfos.size() == 0){
-            cout << "No spills found" << endl;
-            break;
+        if(!bufferInfos.empty()){
+            bufferInfoStart = bufferInfos[bufferInfos.size()-1];
         }
-        bufferInfoStart = bufferInfos[bufferInfos.size()-1];
     }
     cout << "Finished reading all spills" << endl;
 }
@@ -149,6 +166,7 @@ pair<int,int> Go4PixieUnpacker::newFileExists(int runNumber, int fileNumber){
     }
     else{
         cout << "File " << filename << " exists " << endl;
+        fclose(fp_in);
         return make_pair(runNumber, fileNumber + 1);
     }
     //if not, check if runnumber+1 exists
@@ -159,9 +177,9 @@ pair<int,int> Go4PixieUnpacker::newFileExists(int runNumber, int fileNumber){
     }
     else{
         cout << "File " << filename << " exists " << endl;
+        fclose(fp_in);
         return make_pair(runNumber+1, 0);
     }
     //there is no new file
-    fclose(fp_in);
     return make_pair(-1, -1);
 }

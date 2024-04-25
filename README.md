@@ -2,11 +2,7 @@
 
 xia4idsTraces is a modification on the xia4ids code, which in turn is based on PAASS. It allows reading traces from binary .ldf files and performing various timing algorithms for neutron TOF with INDiE. It also allows an output format mimicking the output format of the UCESB unpacker. It also allows reading .ldf files piecewise using multithreading for use in the go4pixie project. 
 
-The structure of the project is based on the modifications made by Erik Asbjørn Mikkelsen Jensen in the repo xia4ids.
-
 ## Build steps for xia4idsTraces
-
-**This section is to be merged into "Installation and running" when/if the modifications here are accepted into the main xia4ids repo.**
 
 Prerequisites:
 * CMake version >= 3.15
@@ -14,57 +10,70 @@ Prerequisites:
 * AUSAlib
 * GSL
 
-Remove `xia4ids` from your path, if you have already followed the "old school" installation instructions.
-
 Then, from the root of the xia4ids project run
 ```shell
 mkdir build
 cd build
 cmake ../
-make -j
-sudo make install
+make -j8
 ```
 
-The `xia4ids` executable will then be available system-wide without the need to modify your path.
-
-Furthermore, `xia4ids` can be utilised as a software library in other C++ projects. This is especially easy if the projects are set up with CMake:
-
-```cmake
-# ...
-
-find_package(xia4ids REQUIRED)
-
-# ...
-
-add_executable(my_executable main.cpp)
-target_link_libraries(my_executable xia4ids::xia4ids)
-
-# ...
-```
-
-See e.g. the *CMakeLists.txt* file in the [Pixie2Ausa project](https://gitlab.au.dk/ausa/erik/pixie2ausa).
-
+The executables "xia4idsTraces" and "go4pixie" will be built in the build directory.
 
 ## Authors and contributors
+**Original xia4ids code:**
  * Razvan Lica, CERN / IFIN-HH, razvan.lica@cern.ch
  * Khai Phan, Tampere University - CERN Summer Student Project 2020, khai.phan@tuni.fi
  * James Cubiss, University of York, james.cubiss@york.ac.uk
  * Chris Page, University of York, chris.page@york.ac.uk
 
+**xia4idsTraces code:**
+ * Jeppe Schultz Nielsen, Aarhus University, jsnielsen@phys.au.dk
 
 
 ## Installation and running
- 1. Download via github.com or using the command line  
- `git clone https://github.com/rlica/xia4ids`
- 2. Compile with `make`.
- 3. [optional] Add in `$HOME/.bashrc` or `$HOME/.profile`       
- `PATH=$PATH:/your_path_here/xia4ids/bin/`
- 4. Run: `xia4ids config_file calibrationFile[optional]`
- 5. Enjoy!
+There are two executables in xia4idsTraces.
 
+**Xia4idsTraces** functions exactly like the old xia4ids code, but with the added functionality of reading traces from binary .ldf files. 
+Additionally, the config file has been slightly altered. To get timing information from the traces, a "digital DAQ parameter file" must also be given, so the correct usage is:
 
-## Getting Started
-### The 'xia4ids' converter requires a configuration file in which the user specifies:
+```./xia4idsTraces [config_file] [calibration_file] [digital_daq_file]```
+
+The digital DAQ file is a text file with the following format:
+```
+0	0	0	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+1	0	1	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+2	0	2	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+3	0	3	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+4	0	4	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+5	0	5	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+6	0	6	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+7	0	7	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+8	0	8	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+9	0	9	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+10	0	10	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+11	0	11	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+12	0	12	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+13	0	13	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+14	0	14	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+15	0	15	Beta	-usecfd=true	-FL=8	-FG=0	-D=4	-w=5.00000e-01
+0	1	0	INDiE	-usePolyCfd=true	-w=0.540000
+1	1	1	INDiE	-usePolyCfd=true	-w=0.540000
+2	1	2	INDiE	-usePolyCfd=true	-w=0.540000
+3	1	3	INDiE	-usePolyCfd=true	-w=0.540000
+...
+```
+Where the first column is detector index, second is module, third is channel, fourth is detector type, and the rest are parameters for the digital DAQ.
+
+**Go4pixie** will unpack .ldf files piecewise using multithreading. It will wait for a new file to appear after the previous file is no longer being written to, and it will only read up to the latest written spill in a file, and then wait for more spills. It then spits files out containing unpacked data, with each file containing ten spills. The usage is:
+
+```./go4pixie [config_file] [calibration_file] [digital_daq_file] [noThreads] [startRunNo] [outputStem]```
+
+The first three parameters are the same as for xia4idsTraces. The fourth parameter is the number of threads to use, the fifth parameter is the run number to start from (this file must exist when the program starts, but not necessarily the following runs. Runs are always expected to be subsequent, so if the run after 188 is 190, go4pixie will hang), and the sixth parameter is the stem of the output files. 
+The output files will be named [outputStem][runNo] _ [partitionNo] _ [spillNo].root, with spillNo being the index in the .ldf file, where the last spill was read. A directory declared in outputstem will then continuously be filled with root files as go4pixie reads the .ldf files.
+
+## Config file format
+**This part is largely adopted from xia4ids.**
  * runName  = location of raw data including the name of the runs, not including the numbers
  * timegate = coincidence timegate
  * cs-tac, pair-tac, flagtype = specific detector types (only for GASPware - for ROOT set them to zero)
@@ -77,87 +86,36 @@ See e.g. the *CMakeLists.txt* file in the [Pixie2Ausa project](https://gitlab.au
       * list = binary event lists
       * stat = print statistics for the entire run, the event builder will be skipped
       * rate = only print statistics for the last buffer, the event builder will be skipped
+      * ausa = ROOT output format mimicking the UCESB unpacker.
  * Fold = the number of coincidences that will trigger an event 
- * The detector configuration depending on the selected output format (see below).
- * Correlation mode (optional) - the program will skip the event builder and will only histogram the time
- differences between the selected modules and channels. 
+ * Traces = 1 if save traces, 0 if not. Only works in ROOT format.
+ * OnlyCoin = Will only save INDiE/beta events if they are coincident.
 
-IMPORTANT: The number of modules and their configuration is hard-coded. Edit 'unpacker.cpp' from line 236.
+Then follows the detector configuration. An example is: 
 
-See the 'etc' folder for some examples of different configuration and calibration files.
+```
+runName    /media/jeppe/2TB/RAW/run_
+timegate   500
+cs-tac     0
+pair-tac   0
+reftype    38
+flagtype   0
+ref_unit   1 us
+run_unit   1 s
+Format     ausa
+Fold       1
+Traces     0
+OnlyCoin   0
+outputName /media/jeppe/2TB/unpackedAUSA/run_
 
-To test the code, a raw data file from 152Eu source and configuration file cand be downloaded from: 
-https://cernbox.cern.ch/index.php/s/1C5pXrtTSCdneZm
-
-#### ROOT format:
-
-The .root file will contain an event tree and singles histograms for all the selected inputs.  
-These are the following branches in the tree:
-
-* E_type1[ ] - ADC data
-* E_type2[ ]
-* .
-* .
-* T_type1[ ] - (HRT) timestamp difference between each branch and the beginning of the event with offset = 1000
-* T_type2[ ]
-* .
-* .  
-* M_type1[ ] - multiplicity for each branch
-* M_type2[ ]
-* .
-* . 
-* MULT     - the multiplicity of the event (fold)
-* TIME     - timestamp difference between the event and the reference (proton pulse or run start) 
-* TIME_RUN - timestamp of the event in `run_unit` units 
-
-
-1. The detectors are defined in the config file. The 'Comments' column will be used for branch naming. 
-2. An individual index-type combination represents a detector. Each distinct type represents a branch in the tree. 
-The index corresponds to the leaf number (because each branch is an array).  
-3. There can be several detectors of the same type and index. In case they are in the same event, their energies will be
-summed up in the corresponding leaf. A calibration file should be provided.
-4. There will be at least 'fold' detectors in the event. 
-
-
-#### GASPware format:
-
-1. The event will contain one Header and the detectors defined in the config file (index and detector type).
-2. Each detector will have at least three parameters:
-    * Energy
-    * HRT(High Resolution Time) - the time difference between each signal and the time centroid of the event
-    * LRT(Low Resolution Time)  - the time difference between the event and the reference signal (refType).
-    * If there is no reference defined (refType 0), the LRT parameter will be missing.
-3. 'pair-tac' will be treated as a detector with two extra parameters: the start and stop energies.   
-    * At 'Link' set the detector type that starts and stops the pair-tac (eg LaBr)
-    * At 'Start' and 'Stop' set the Index of the 'Link' that starts and stops the tac
-4. 'cs-tac' is set between each detector and the common stop/start.
-    * It will be considered as a parameter for the detector type set at 'Link'
-5. The header will contain the timestamp of the event in `run_unit` units.
-
-
-#### LIST format:
-
-1. The event consists of several entries, written as 32bit integers such as:
-     * (proton-time)-(beta-energy)-(labr-energy)-(TAC_Beta-LaBr)
-     * (proton-time)-(beta-energy)-(labr1-energy)-(TAC_Beta_Labr1)-(Labr2-energy)-(TAC_labr1_labr2)
-
-2. There is a 'zero' separator before each event.
-
-3. Each distinct type represents an entry in the event. 
-
-4. There can be several detectors of the same type. They should be calibrated because they go in the same entry.
-The type ordering in the config file is the ordering of the entries in the event.
-
-5. To write the timestamp difference between current entry and a common reference
-inside the event, set the type of the reference at "Link" for each detector. 
-The timestamp difference entry will appear after the energy entry.
-
-6. To write the event time versus the reference signal (proton-time), set the referece at refType.
-
-#### RATE format:
-
-1. Set the input file as the second argument: `n4i [config_file] [input_file] [calibration_file]`.
-2. It will print the statistics for the last buffer in the input file. You will be asked to input the number
-of blocks you want to be read from the end of the file. 
-3. You will be asked if you want to output the results in a ROOT file (useful for real-time yield measurement).
-4. Use the `macros/xia4ids_rate.sh` script file in order to get automatically the last file in a folder.
+|Index		|Type		|Mod		|Chan	|Delay		|Link		|Start		|Stop		|Comment
+1	1	1	0	0	0	0	0	I1
+2	1	1	1	0	0	0	0	I1
+1	2	1	2	0	0	0	0	I2
+2	2	1	3	0	0	0	0	I2
+1	3	1	4	0	0	0	0	I3
+2	3	1	5	0	0	0	0	I3
+1	4	1	6	0	0	0	0	I4
+2	4	1	7	0	0	0	0	I4
+...
+```

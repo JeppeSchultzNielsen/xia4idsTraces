@@ -17,7 +17,7 @@ void Xia4idsRunner::define_ausa() {
             sprintf(root_string[config_coding[i][1]], "%d", config_coding[i][1]);
 
     //initialize the detectorBranches
-    for (i = 0; i < dettypes+1; i++) {
+    for (i = 1; i < dettypes+1; i++) {
         //cout << "i: " << i << " " << root_string[i] <<  endl;
         detectorMuls[i] = 0;
         tree -> Branch(root_string[i],&detectorMuls[i]);

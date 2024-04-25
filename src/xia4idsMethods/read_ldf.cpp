@@ -32,7 +32,6 @@ int Xia4idsRunner::read_ldf(LDF_file& ldf, DATA_buffer& data, int& pos_index, in
     // variable that stores data spill
     unsigned int* data_ = new unsigned int[memoryuse];
     if(max_spills < 0) max_spills = max_num_spill;
-    //pos_index = 1245488;
 
     // variable for decoding the data spill
     Unpacker unpacker_; /// Pointer to class derived from Unpacker class.
@@ -279,7 +278,6 @@ int Xia4idsRunner::read_ldf_spill(LDF_file& ldf, DATA_buffer& data, int& pos_ind
 
     //pos_index = 1245488;
 
-
     // variable for decoding the data spill
     Unpacker unpacker_; /// Pointer to class derived from Unpacker class.f
     ldf.GetFile().open(ldf.GetName().c_str(), std::ios::binary);
@@ -318,8 +316,6 @@ int Xia4idsRunner::read_ldf_spill(LDF_file& ldf, DATA_buffer& data, int& pos_ind
 
     while (true) {
         if (!data.Read(&ldf.GetFile(), (char*)data_, nBytes, 0, full_spill, bad_spill, debug_mode)) {     // Reading a spill from the binary file
-
-
             if (data.GetRetval() == 1) {
                 if (debug_mode) {
                     std::cout << "debug: Encountered single EOF buffer (end of run).\n";
@@ -397,6 +393,11 @@ int Xia4idsRunner::read_ldf_spill(LDF_file& ldf, DATA_buffer& data, int& pos_ind
             std::cout << "debug: Retrieved spill fragment of " << nBytes << " bytes (" << nBytes / 4 << " words)\n";
             std::cout << "debug: Read up to word number " << ldf.GetFile().tellg() / 4 << " in input file\n";
             std::cout << std::endl << std::endl;
+        }
+
+        if(ldf.GetFile().tellg() > bufferInfo.spillEnd){
+            pos_index = ldf.GetFile().tellg();	// Setting the pointer to the current position in the file
+            break;
         }
 
 
